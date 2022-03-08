@@ -1,0 +1,5 @@
+CREATE DATABASE db1;
+USE db1;
+CREATE TABLE IF NOT EXISTS order	 ( 	order_id INT	, 	order_name VARCHAR	, 	customer_name VARCHAR	, 	contact VARCHAR	, 	PRIMARY KEY (order_id) );
+INSERT INTO order (order_id,order_name,customer_name,contact) VALUES (1,'Dessert','parampal','0648');
+CREATE TABLE IF NOT EXISTS orderdetails	 ( 	meal_id INT NOT_NULL	, 	meal_name VARCHAR NOT_NULL	, 	specifications VARCHAR NOT_NULL	, 	cost VARCHAR	, 	PRIMARY KEY (meal_id)	,FOREIGN KEY ( order_id) REFERENCES order( order_id) );
