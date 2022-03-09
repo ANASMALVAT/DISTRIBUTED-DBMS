@@ -12,5 +12,6 @@ public class Constants{
     public static final String tableColumnSeparator = "<xx>";
     public static final String columnColumnSeparator = "<x>";
     public static final String sqlDumpFile = "sql_dump.txt";
+    public static final String foreignKeySeparator = " ==(*)=========(1)==>> ";
 
 }

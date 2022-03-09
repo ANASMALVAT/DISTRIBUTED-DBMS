@@ -45,34 +45,18 @@ public class erdCreator {
             if(firstLine)
             {
                 // not needed first line of data dictionary in erd diagram
-                //fileReader_DataDictionary.nextLine();
                 firstLine = false;
-                //continue;
             }
             else
             {
                 lineInDataDictionary = fileReader_DataDictionary.nextLine();
                 if(lineInDataDictionary.contains(Constants.foreignKey))
                 {
-                    //System.out.println(lineInDataDictionary);
-                    List<String> tableEntity = List.of(lineInDataDictionary.split(Constants.tableColumnSeparator));
-                    String tableName = tableEntity.get(0);
-                    //System.out.println(tableName);
-                    List<String> tableColumns = List.of(tableEntity.get(1).split(Constants.columnColumnSeparator));
-
-                    String foreignKeyText = tableColumns.get(tableColumns.size()-1); // FOREIGN_KEY (MainTableName,ColumnName);
-
-                    String[] processingArray = foreignKeyText.split(",");
-                    String referencedTableName = processingArray[0].split("[(]")[1];
-                    fileWriter_ERDDiagram.write(lineInDataDictionary);
-                    fileWriter_ERDDiagram.append("\n");
-                    fileWriter_ERDDiagram.write(tableName +" --(*)------------(1)-->> "+referencedTableName);
-                    fileWriter_ERDDiagram.append("\n");
+                    handleTableWithForeignKeyRelation(lineInDataDictionary, fileWriter_ERDDiagram);
                 }
                 else
                 {
-                    fileWriter_ERDDiagram.write(lineInDataDictionary);
-                    fileWriter_ERDDiagram.append("\n");
+                    handleNormalTable(lineInDataDictionary, fileWriter_ERDDiagram);
                 }
             }
         }
@@ -80,5 +64,26 @@ public class erdCreator {
         fileReader_DataDictionary.close();
         fileWriter_ERDDiagram.close();
 
+    }
+
+    public  static void handleNormalTable(String lineInDataDictionary, FileWriter fileWriter_ERDDiagram) throws IOException {
+        fileWriter_ERDDiagram.write(lineInDataDictionary);
+        fileWriter_ERDDiagram.append("\n");
+    }
+
+    public static void handleTableWithForeignKeyRelation(String lineInDataDictionary, FileWriter fileWriter_ERDDiagram) throws IOException {
+        List<String> tableEntity = List.of(lineInDataDictionary.split(Constants.tableColumnSeparator));
+        String tableName = tableEntity.get(0);
+
+        List<String> tableColumns = List.of(tableEntity.get(1).split(Constants.columnColumnSeparator));
+
+        String foreignKeyText = tableColumns.get(tableColumns.size()-1); // FOREIGN_KEY (MainTableName,ColumnName);
+
+        String[] processingArray = foreignKeyText.split(",");
+        String referencedTableName = processingArray[0].split("[(]")[1];
+        fileWriter_ERDDiagram.write(lineInDataDictionary);
+        fileWriter_ERDDiagram.append("\n");
+        fileWriter_ERDDiagram.write(tableName + Constants.foreignKeySeparator +referencedTableName);
+        fileWriter_ERDDiagram.append("\n");
     }
 }

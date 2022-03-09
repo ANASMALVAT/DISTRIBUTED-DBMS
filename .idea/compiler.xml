@@ -9,5 +9,8 @@
         <module name="dmwa-project-team_dpg_17" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="dmwa-project-team_dpg_17" target="17" />
+    </bytecodeTargetLevel>
   </component>
 </project>
