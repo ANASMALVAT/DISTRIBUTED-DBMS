@@ -1,0 +1,3 @@
+TABLES	 <xx> 	COLUMNS
+order	<xx> 	order_id INT	<x> 	order_name VARCHAR	<x> 	customer_name VARCHAR	<x> 	contact VARCHAR	<x> 	PRIMARY_KEY (order_id);
+orderdetails	<xx> 	meal_id INT NOT_NULL	<x> 	meal_name VARCHAR NOT_NULL	<x> 	specifications VARCHAR NOT_NULL	<x> 	cost VARCHAR	<x> 	PRIMARY_KEY (meal_id)	<x> 	FOREIGN_KEY (order, order_id);

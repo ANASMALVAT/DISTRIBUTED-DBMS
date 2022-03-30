@@ -1,0 +1,1 @@
+meal_id	<->	meal_name	<->	specifications	<->	cost <-> order_id
