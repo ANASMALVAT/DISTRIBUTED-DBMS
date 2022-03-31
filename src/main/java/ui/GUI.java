@@ -1,6 +1,7 @@
 package ui;
 
 import auth.User;
+import database.DatabaseHandler;
 import datadump.datadumpCreator;
 import erd.erdCreator;
 
@@ -59,6 +60,15 @@ public class GUI {
             }
             if(line.equals("1")) {
                 // TODO: 3/18/2022
+                DatabaseHandler databaseHandler = new DatabaseHandler();
+                databaseHandler.CreateDatabase("create DATABASE tester");
+                databaseHandler.showDatabase();
+                databaseHandler.CreateTable("create table kanu (userid varchar(255) FOREIGN KEY REFERENCES anas(userid), username int primary key)","DB1");
+                databaseHandler.SelectFromTable("select userid,username from user where userid in (danu)","DB1");
+                databaseHandler.CheckUpdate("update user set userid = benny where userid != benny ", "DB1");
+                databaseHandler.CheckDelete("delete from user where userid = benny,asd)","DB1");
+                databaseHandler.CheckInsert("insert into user values (a,1,c),  (d,2,f)","DB1");
+
             }
         }
     }
