@@ -1,3 +1,4 @@
+package database;
 
 import java.io.*;
 import java.lang.invoke.VarHandle;
@@ -1010,8 +1011,8 @@ public static HashMap<String,Integer> SendColValues(String query) throws IOExcep
         System.out.println("The Query is Invalid!");
         System.out.println();
     }
-    public static void main(String args[]) throws IOException {
-
+//    public static void main(String args[]) throws IOException {
+//
 //
 //                CreateDatabase("create DATABASE tester");
 //                showDatabase();
@@ -1020,7 +1021,7 @@ public static HashMap<String,Integer> SendColValues(String query) throws IOExcep
 //                CheckUpdate("update user set userid = benny where userid != benny ", "DB1");
 //                CheckDelete("delete from user where userid = benny,asd)","DB1");
 //                CheckInsert("insert into user values (a,1,c),  (d,2,f)","DB1");
-    }
+//    }
 
 }
 
