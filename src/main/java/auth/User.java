@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
 import com.google.common.hash.Hashing;
+import support.GlobalData;
 
 public class User {
     private BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -58,6 +59,7 @@ public class User {
                     System.out.print("Enter answer: ");
                     String answer = reader.readLine();
                     if (answer.equals(values[selectedNumber + 1])) {
+                        GlobalData.userId=userId;
                         return true;
                     }
                 }
