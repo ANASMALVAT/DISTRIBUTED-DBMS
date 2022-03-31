@@ -1,5 +1,6 @@
 package ui;
 
+import analysis.Queries;
 import auth.User;
 import database.DatabaseHandler;
 import datadump.datadumpCreator;
@@ -46,20 +47,7 @@ public class GUI {
             System.out.println("5. Quit");
             System.out.print("Enter value of option chosen and press enter to continue: ");
             String line = reader.readLine();
-            if(line.equals("5")) {
-                return;
-            }
-            if(line.equals("4")) {
-                erdCreator.createERDDiagram("u1", "db1");
-            }
-            if(line.equals("3")) {
-                // TODO: 3/18/2022
-            }
-            if(line.equals("2")) {
-                datadumpCreator.createDataDump("u1", "db1");
-            }
             if(line.equals("1")) {
-                // TODO: 3/18/2022
                 DatabaseHandler databaseHandler = new DatabaseHandler();
                 databaseHandler.CreateDatabase("create DATABASE tester");
                 databaseHandler.showDatabase();
@@ -69,6 +57,25 @@ public class GUI {
                 databaseHandler.CheckDelete("delete from user where userid = benny,asd)","DB1");
                 databaseHandler.CheckInsert("insert into user values (a,1,c),  (d,2,f)","DB1");
 
+            }
+            if(line.equals("2")) {
+                datadumpCreator.createDataDump("u1", "db1");
+            }
+            if(line.equals("3")) {
+                erdCreator.createERDDiagram("u1", "db1");
+            }
+            if(line.equals("4")) {
+                System.out.print("Enter search term: ");
+                String analysis = reader.readLine();
+                Queries queries = new Queries();
+                if(analysis.equals("count queries")) {
+                    queries.printCountQuery();
+                } else {
+                    queries.printCountUpdate();
+                }
+            }
+            if(line.equals("5")) {
+                return;
             }
         }
     }
