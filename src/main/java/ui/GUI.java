@@ -85,18 +85,30 @@ public class GUI {
         String query = reader.readLine();
         query = query.toLowerCase();
         if (query.contains("select")) {
+            long startTime = System.currentTimeMillis();
             databaseHandler.SelectFromTable(query,"DB1");
+            long endTime = System.currentTimeMillis();
         } else if (query.contains("update")) {
+            long startTime = System.currentTimeMillis();
             databaseHandler.CheckUpdate(query, "DB1");
+            long endTime = System.currentTimeMillis();
         } else if (query.contains("delete")) {
+            long startTime = System.currentTimeMillis();
             databaseHandler.CheckDelete(query,"DB1");
+            long endTime = System.currentTimeMillis();
         } else if (query.contains("insert")) {
+            long startTime = System.currentTimeMillis();
             databaseHandler.CheckInsert(query,"DB1");
+            long endTime = System.currentTimeMillis();
         } else if (query.contains("create")) {
             if (query.contains("database")) {
+                long startTime = System.currentTimeMillis();
                 databaseHandler.CreateDatabase(query);
+                long endTime = System.currentTimeMillis();
             } else if (query.contains("table")) {
+                long startTime = System.currentTimeMillis();
                 databaseHandler.CreateTable(query,"DB1");
+                long endTime = System.currentTimeMillis();
             }
         }
         System.out.println("Query executed");
