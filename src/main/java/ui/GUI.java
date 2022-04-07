@@ -13,8 +13,10 @@ import support.GlobalData;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.time.Instant;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import transaction.Trans;
 
 public class GUI {
     private BufferedReader reader;
@@ -93,7 +95,14 @@ public class GUI {
         System.out.print("Enter query: ");
         String query = reader.readLine();
         query = query.toLowerCase();
-        if (query.contains("select")) {
+        List<String> queries = new ArrayList<String>(Arrays.asList(query.split(";")));
+
+        
+        if(queries.size() > 1){
+            Trans tx = new Trans();
+            tx.processTransaction(queries); 
+
+        } else if (query.contains("select")) {
             long startTime = System.currentTimeMillis();
             Instant timestampBefore = Instant.now();
             databaseHandler.SelectFromTable(query,"DB1");

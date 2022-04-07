@@ -7,14 +7,16 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
 public class datadumpCreator {
     public static void createDataDump(String username, String databaseName) throws IOException {
-        String dataDictionaryPath = Constants.outputFolderPath  + databaseName + "/" + Constants.dataDictionaryFileName;
-        String sqlDumpPath = Constants.outputFolderPath  + databaseName + "/" + Constants.sqlDumpFile;
+        String DbPath = "./DatabaseSystem/Database/";
+        String dataDictionaryPath = DbPath + "/" + databaseName + "/" + Constants.dataDictionaryFileName;
+        String sqlDumpPath = DbPath + "/" + databaseName + "/" + Constants.sqlDumpFile;
 
         File sql_dump_file = new File(sqlDumpPath);
         if(sql_dump_file.exists() && !sql_dump_file.isDirectory()) {
@@ -64,12 +66,13 @@ public class datadumpCreator {
                 lineInDataDictionary = lineInDataDictionary.replace(";", "");
                 List<String> tableEntity = List.of(lineInDataDictionary.split(Constants.tableColumnSeparator));
                 String tableName = tableEntity.get(0);
-                List<String> tableColumns = List.of(tableEntity.get(1).split(Constants.columnColumnSeparator));
-                //System.out.println(tableColumns);
+                List<String> tableColumns = new ArrayList<>(List.of(tableEntity.get(1).split(Constants.columnColumnSeparator)));
+                if(tableColumns.get(tableColumns.size()-1).equals(" ") || tableColumns.get(tableColumns.size()-1).equals(""))
+                    tableColumns.remove(tableColumns.size()-1);
 
                 if(lineInDataDictionary.contains(Constants.foreignKey))
                 {
-                    String foreignKeyText = tableColumns.get(tableColumns.size()-1); // FOREIGN_KEY (MainTableName,ColumnName);
+                    String foreignKeyText = tableColumns.get(tableColumns.size()-1);
                     String[] processingArray = foreignKeyText.split(",");
                     String referencedTableName = processingArray[0].split("[(]")[1];
                     String referencedColumnName = processingArray[1].split("[)]")[0];
@@ -91,8 +94,6 @@ public class datadumpCreator {
                 }
                 else
                 {
-                    //table1	>??<	t1_id INT	>?<	 name VARCHAR	>?<	 mail VARCHAR	>?<	contact VARCHAR	>?<	PRIMARY_KEY (t1_id);
-
                     for(int i =0; i< tableColumns.size(); i++)
                     {
                         columnsString += tableColumns.get(i);
@@ -108,7 +109,7 @@ public class datadumpCreator {
                 }
 
                 // tables insert queries
-                String tablePath = Constants.outputFolderPath  + databaseName + "/" + tableName.trim() + ".txt";
+                String tablePath = DbPath + "/"  + databaseName + "/" + tableName.trim() + "/data.txt";
                 String insertDataStmt = formInsertTableStatement(tableName.trim(), tablePath);
                 if(insertDataStmt != null)
                 {
@@ -124,8 +125,6 @@ public class datadumpCreator {
     }
 
     public static String formCreateTableStatement(String tableName, String columns){
-
-        //System.out.println(columns);
         String statement = String.format("CREATE TABLE IF NOT EXISTS %s " +
                 "(" + "%s " + ")", tableName, columns);
 
@@ -137,39 +136,27 @@ public class datadumpCreator {
 
         File table_file = new File(path);
         Scanner fileReader_TableData = new Scanner(table_file);
-        boolean firstLine = true;
-        List<String> columns = new ArrayList<>();
         List<List<String>> dataList = new ArrayList<>();
         while(fileReader_TableData.hasNext())
         {
-            if(firstLine)
-            {
-                for(String col : fileReader_TableData.nextLine().split(Constants.columnColumnSeparator))
-                {
-                    columns.add(col.trim());
-                }
-                firstLine = false;
-            }
-            else
-            {
-                List<String> tableData = List.of(fileReader_TableData.nextLine().split(Constants.columnColumnSeparator));
+                List<String> tableData = new ArrayList<>(List.of(fileReader_TableData.nextLine().split(Constants.tableColumnSeparator)));
+                if(tableData.get(tableData.size()-1).equals(" ") || tableData.get(tableData.size()-1).equals(""))
+                    tableData.remove(tableData.size()-1);
+
                 dataList.add(tableData);
-            }
         }
 
         fileReader_TableData.close();
 
-        String columnString = String.join(",", columns);
-
         if(dataList.size() == 0)
             return null;
 
-        List<String> createStmt = prepareStatements(tableName, columnString, dataList);
+        List<String> createStmt = prepareStatements(tableName, dataList);
 
         return createStmt.get(0);
     }
 
-    private static List<String> prepareStatements(String tableName, String columnNames, List<List<String>> rows) {
+    private static List<String> prepareStatements(String tableName, List<List<String>> rows) {
         List<String> result = new ArrayList<>();
         rows.forEach(row->{
             StringBuilder sb = new StringBuilder();
@@ -179,10 +166,9 @@ public class datadumpCreator {
                     sb.append(",");
                 }
             }
-            String sql = String.format("INSERT INTO %s (%s) VALUES (%s);", tableName, columnNames, sb.toString());
+            String sql = String.format("INSERT INTO %s  (%s);", tableName, sb.toString());
             result.add(sql);
         });
-        //System.out.print(result);
         return result;
     }
 }

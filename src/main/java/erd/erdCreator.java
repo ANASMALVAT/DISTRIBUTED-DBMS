@@ -11,8 +11,9 @@ import java.util.Scanner;
 public class erdCreator {
 
     public static void createERDDiagram(String username, String databaseName) throws IOException {
-        String dataDictionaryPath = Constants.outputFolderPath +  databaseName + "/" + Constants.dataDictionaryFileName;
-        String erdDiagramPath = Constants.outputFolderPath  + databaseName + "/" + Constants.erdDiagramFileName;
+        String DbPath = "./DatabaseSystem/Database/";
+        String dataDictionaryPath = DbPath + "/" + databaseName + "/" + Constants.dataDictionaryFileName;
+        String erdDiagramPath = DbPath + "/" + databaseName + "/" + Constants.erdDiagramFileName;
 
         File erd_diagram_file = new File(erdDiagramPath);
         if(erd_diagram_file.exists() && !erd_diagram_file.isDirectory()) {
@@ -33,7 +34,6 @@ public class erdCreator {
         {
             // raise error and terminate and log
         }
-
 
         Scanner fileReader_DataDictionary = new Scanner(data_dictionary_file);
         FileWriter fileWriter_ERDDiagram = new FileWriter(erd_diagram_file);
