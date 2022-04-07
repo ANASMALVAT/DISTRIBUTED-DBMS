@@ -231,7 +231,8 @@ class TranactionTable{
                     }            
                 }else{
                     return false;
-                }    
+                }
+                lock.releaseLock(orginalTableName);  
             }
             return true;
         }catch(Exception e){
@@ -256,6 +257,7 @@ class TranactionTable{
                 }else{
                     return false;
                 }   
+                lock.releaseLock(orginalTableName);  
             }
             return true;
         }catch(Exception e){
@@ -277,7 +279,8 @@ class TranactionTable{
                         List<String> tempList  = Arrays.asList(orginalTableName, database, "updateTable");
                         stack.push(tempList); 
                     }            
-                }    
+                }  
+                lock.releaseLock(orginalTableName);  
             }
             return true;
         }catch(Exception e){
