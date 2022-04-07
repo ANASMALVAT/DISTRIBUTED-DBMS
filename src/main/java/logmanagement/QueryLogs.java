@@ -23,11 +23,11 @@ public class QueryLogs {
         if(fileExists)
         {
 
-            formatted_query = "," + "\r\n" +"{" + "\r\n" + "query: "  + query + "\r\n" + "timestamp: " +timestamp + "\r\n" + "user: " + GlobalData.userId + "\r\n" + "db: " + dbName + "\r\n" + "}";
+            formatted_query = "," + "\r\n" +"{" + "\r\n" + "query: \""  + query + "\",\r\n" + "timestamp: \"" +timestamp + "\",\r\n" + "user: \"" + GlobalData.userId + "\",\r\n" + "db: \"" + dbName + "\",\r\n" + "}";
         }
         else
         {
-            formatted_query = "{  " + "\r\n" + "query: "  + query + "\r\n" + "timestamp: " +timestamp + "\r\n" + "user: " + GlobalData.userId + "\r\n" + "db: " + dbName + "\r\n" + "}";
+            formatted_query = "{  " + "\r\n" + "query: \""  + query + "\",\r\n" + "timestamp: \"" +timestamp + "\",\r\n" + "user: \"" + GlobalData.userId + "\",\r\n" + "db: \"" + dbName + "\",\r\n" + "}";
         }
         writer.write(formatted_query);
         writer.close();
