@@ -5,6 +5,7 @@ import auth.User;
 import database.DatabaseHandler;
 import datadump.datadumpCreator;
 import erd.erdCreator;
+import logmanagement.EventLogs;
 import logmanagement.GeneralLogs;
 import logmanagement.QueryLogs;
 import support.GlobalData;
@@ -89,6 +90,8 @@ public class GUI {
         DatabaseHandler databaseHandler = new DatabaseHandler();
         GeneralLogs genLogs = new GeneralLogs();
         QueryLogs queryLogs = new QueryLogs();
+        EventLogs eventLogs =new EventLogs();
+
         System.out.print("Enter query: ");
         String query = reader.readLine();
         query = query.toLowerCase();
@@ -101,40 +104,52 @@ public class GUI {
 
         } else if (query.contains("select")) {
             long startTime = System.currentTimeMillis();
+            Instant timestampBefore = Instant.now();
             databaseHandler.SelectFromTable(query,"DB1");
+            Instant timestampAfter = Instant.now();
             long endTime = System.currentTimeMillis();
-            genLogs.writeGeneralLogs(startTime,endTime);
+            genLogs.writeGeneralLogs(startTime,endTime, timestampBefore, timestampAfter);
             queryLogs.writeQueryLogs(query,"DB1");
         } else if (query.contains("update")) {
             long startTime = System.currentTimeMillis();
+            Instant timestampBefore = Instant.now();
             databaseHandler.CheckUpdate(query, "DB1");
+            Instant timestampAfter = Instant.now();
             long endTime = System.currentTimeMillis();
-            genLogs.writeGeneralLogs(startTime,endTime);
+            genLogs.writeGeneralLogs(startTime,endTime, timestampBefore, timestampAfter);
             queryLogs.writeQueryLogs(query,"DB1");
         } else if (query.contains("delete")) {
             long startTime = System.currentTimeMillis();
+            Instant timestampBefore = Instant.now();
             databaseHandler.CheckDelete(query,"DB1");
+            Instant timestampAfter = Instant.now();
             long endTime = System.currentTimeMillis();
-            genLogs.writeGeneralLogs(startTime,endTime);
+            genLogs.writeGeneralLogs(startTime,endTime, timestampBefore, timestampAfter);
             queryLogs.writeQueryLogs(query,"DB1");
         } else if (query.contains("insert")) {
             long startTime = System.currentTimeMillis();
+            Instant timestampBefore = Instant.now();
             databaseHandler.CheckInsert(query,"DB1");
+            Instant timestampAfter = Instant.now();
             long endTime = System.currentTimeMillis();
-            genLogs.writeGeneralLogs(startTime,endTime);
+            genLogs.writeGeneralLogs(startTime,endTime, timestampBefore, timestampAfter);
             queryLogs.writeQueryLogs(query,"DB1");
         } else if (query.contains("create")) {
             if (query.contains("database")) {
                 long startTime = System.currentTimeMillis();
+                Instant timestampBefore = Instant.now();
                 databaseHandler.CreateDatabase(query);
+                Instant timestampAfter = Instant.now();
                 long endTime = System.currentTimeMillis();
-                genLogs.writeGeneralLogs(startTime,endTime);
+                genLogs.writeGeneralLogs(startTime,endTime, timestampBefore, timestampAfter);
                 queryLogs.writeQueryLogs(query,"DB1");
             } else if (query.contains("table")) {
                 long startTime = System.currentTimeMillis();
+                Instant timestampBefore = Instant.now();
                 databaseHandler.CreateTable(query,"DB1");
+                Instant timestampAfter = Instant.now();
                 long endTime = System.currentTimeMillis();
-                genLogs.writeGeneralLogs(startTime,endTime);
+                genLogs.writeGeneralLogs(startTime,endTime, timestampBefore, timestampAfter);
                 queryLogs.writeQueryLogs(query,"DB1");
             }
         }
