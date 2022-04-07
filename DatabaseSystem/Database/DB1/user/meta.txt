@@ -1,0 +1,2 @@
+userid primary<**>username<**>class
+varchar<**>int<**>varchar
