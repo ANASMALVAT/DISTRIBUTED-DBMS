@@ -1,29 +1,36 @@
 package analysis;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Queries {
-    private String json = "{\n" +
-            "  \"query\": \"update user set userid = benny where userid != benny\",\n" +
-            "  \"timestamp\": \"1648724206\",\n" +
-            "  \"user\": \"SDEY\",\n" +
-            "  \"db\": \"DB1\"\n" +
-            "},\n" +
-            "{\n" +
-            "  \"query\": \"update user set userid = benny where userid != benny\",\n" +
-            "  \"timestamp\": \"1648724206\",\n" +
-            "  \"user\": \"SDEY\",\n" +
-            "  \"db\": \"DB1\"\n" +
-            "},\n" +
-            "{\n" +
-            "  \"query\": \"update user set userid = benny where userid != benny\",\n" +
-            "  \"timestamp\": \"1648724206\",\n" +
-            "  \"user\": \"Alex\",\n" +
-            "  \"db\": \"DB1\"\n" +
-            "}";
+    private String filePath = "";
+    private File file = new File(filePath + "Query_Logs.txt");
+//    private String json = "{\n" +
+//            "  \"query\": \"update user set userid = benny where userid != benny\",\n" +
+//            "  \"timestamp\": \"1648724206\",\n" +
+//            "  \"user\": \"SDEY\",\n" +
+//            "  \"db\": \"DB1\"\n" +
+//            "},\n" +
+//            "{\n" +
+//            "  \"query\": \"update user set userid = benny where userid != benny\",\n" +
+//            "  \"timestamp\": \"1648724206\",\n" +
+//            "  \"user\": \"SDEY\",\n" +
+//            "  \"db\": \"DB1\"\n" +
+//            "},\n" +
+//            "{\n" +
+//            "  \"query\": \"update user set userid = benny where userid != benny\",\n" +
+//            "  \"timestamp\": \"1648724206\",\n" +
+//            "  \"user\": \"Alex\",\n" +
+//            "  \"db\": \"DB1\"\n" +
+//            "}";
 
-    private Map<String, QueryDto> countQuery() {
+    private Map<String, QueryDto> countQuery() throws IOException {
+        String json = Files.readString(Paths.get(filePath + file));
         String[] arrayOfJson= json.split("}");
         Map<String, QueryDto> map = new HashMap<>();
 
@@ -42,7 +49,7 @@ public class Queries {
         return map;
     }
 
-    public void printCountQuery() {
+    public void printCountQuery() throws IOException {
         Map<String, QueryDto> map = countQuery();
         for (Map.Entry<String,QueryDto> entry : map.entrySet()) {
             String formattedName = entry.getKey().replaceAll("[^a-zA-Z0-9]", "");
@@ -58,7 +65,8 @@ public class Queries {
         }
     }
 
-    private Map<String, Integer> countUpdate() {
+    private Map<String, Integer> countUpdate() throws IOException {
+        String json = Files.readString(Paths.get(filePath + file));
         String[] arrayOfJson= json.split("}");
         Map<String, Integer> map = new HashMap<>();
 
@@ -80,7 +88,7 @@ public class Queries {
         return map;
     }
 
-    public void printCountUpdate() {
+    public void printCountUpdate() throws IOException {
         Map<String, Integer> map = countUpdate();
         for (Map.Entry<String,Integer> entry : map.entrySet()) {
             System.out.println("Total " + entry.getValue() + " Update operations are performed on " + entry.getKey());

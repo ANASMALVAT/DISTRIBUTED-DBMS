@@ -1,0 +1,15 @@
+{  
+Execution Time of the query in general logs: 2
+}, 
+{
+Execution Time of the query in general logs: 48
+}, 
+{
+Execution Time of the query in general logs: 52
+}, 
+{
+Execution Time of the query in general logs: 2
+}, 
+{
+Execution Time of the query in general logs: 2
+}
