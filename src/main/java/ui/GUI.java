@@ -5,6 +5,7 @@ import auth.User;
 import database.DatabaseHandler;
 import datadump.datadumpCreator;
 import erd.erdCreator;
+import support.GlobalData;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -39,7 +40,9 @@ public class GUI {
 
     public void home() throws IOException {
         while (true) {
+            System.out.println("=============================================");
             System.out.println("Home page");
+            System.out.println("=============================================");
             System.out.println("1. Write Queries");
             System.out.println("2. Export");
             System.out.println("3. Data Model");
@@ -48,21 +51,17 @@ public class GUI {
             System.out.print("Enter value of option chosen and press enter to continue: ");
             String line = reader.readLine();
             if(line.equals("1")) {
-                DatabaseHandler databaseHandler = new DatabaseHandler();
-                databaseHandler.CreateDatabase("create DATABASE tester");
-                databaseHandler.showDatabase();
-                databaseHandler.CreateTable("create table kanu (userid varchar(255) FOREIGN KEY REFERENCES anas(userid), username int primary key)","DB1");
-                databaseHandler.SelectFromTable("select userid,username from user where userid in (danu)","DB1");
-                databaseHandler.CheckUpdate("update user set userid = benny where userid != benny ", "DB1");
-                databaseHandler.CheckDelete("delete from user where userid = benny,asd)","DB1");
-                databaseHandler.CheckInsert("insert into user values (a,1,c),  (d,2,f)","DB1");
-
+                handleQuery();
             }
             if(line.equals("2")) {
-                datadumpCreator.createDataDump("u1", "db1");
+                System.out.print("Please provide database name: ");
+                String dbName = reader.readLine();
+                datadumpCreator.createDataDump(GlobalData.userId, dbName);
             }
             if(line.equals("3")) {
-                erdCreator.createERDDiagram("u1", "db1");
+                System.out.print("Please provide database name: ");
+                String dbName = reader.readLine();
+                erdCreator.createERDDiagram(GlobalData.userId, dbName);
             }
             if(line.equals("4")) {
                 System.out.print("Enter search term: ");
@@ -78,6 +77,41 @@ public class GUI {
                 return;
             }
         }
+    }
+
+    private void handleQuery() throws IOException {
+        DatabaseHandler databaseHandler = new DatabaseHandler();
+        System.out.print("Enter query: ");
+        String query = reader.readLine();
+        query = query.toLowerCase();
+        if (query.contains("select")) {
+            long startTime = System.currentTimeMillis();
+            databaseHandler.SelectFromTable(query,"DB1");
+            long endTime = System.currentTimeMillis();
+        } else if (query.contains("update")) {
+            long startTime = System.currentTimeMillis();
+            databaseHandler.CheckUpdate(query, "DB1");
+            long endTime = System.currentTimeMillis();
+        } else if (query.contains("delete")) {
+            long startTime = System.currentTimeMillis();
+            databaseHandler.CheckDelete(query,"DB1");
+            long endTime = System.currentTimeMillis();
+        } else if (query.contains("insert")) {
+            long startTime = System.currentTimeMillis();
+            databaseHandler.CheckInsert(query,"DB1");
+            long endTime = System.currentTimeMillis();
+        } else if (query.contains("create")) {
+            if (query.contains("database")) {
+                long startTime = System.currentTimeMillis();
+                databaseHandler.CreateDatabase(query);
+                long endTime = System.currentTimeMillis();
+            } else if (query.contains("table")) {
+                long startTime = System.currentTimeMillis();
+                databaseHandler.CreateTable(query,"DB1");
+                long endTime = System.currentTimeMillis();
+            }
+        }
+        System.out.println("Query executed");
     }
 
 
