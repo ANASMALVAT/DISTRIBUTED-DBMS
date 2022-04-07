@@ -9,9 +9,11 @@ import support.GlobalData;
 
 public class User {
     private BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    public static String dbPath = "./DatabaseSystem/";
 
     public void registration() throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter("User_Profile.txt"));
+        File file = new File(dbPath + "User_Profile.txt");
+        BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
         System.out.println("Please enter all the information requested below. Press enter after entering each value");
         System.out.print("Enter your user id: ");
         String userId = reader.readLine();
@@ -37,6 +39,7 @@ public class User {
     }
 
     public boolean authenticate() throws IOException {
+        File file = new File(dbPath + "User_Profile.txt");
         System.out.println("Please enter all the information requested below. Press enter after entering each value");
         System.out.print("Enter your user id: ");
         String userId = reader.readLine();
@@ -48,7 +51,7 @@ public class User {
         String hashedPassword = Hashing.sha256()
                 .hashString(password, StandardCharsets.UTF_8)
                 .toString();
-        BufferedReader br = new BufferedReader(new FileReader("User_Profile.txt"));
+        BufferedReader br = new BufferedReader(new FileReader(file));
         String line;
         while ((line = br.readLine()) != null) {
             String[] values = line.split("<xx>");
