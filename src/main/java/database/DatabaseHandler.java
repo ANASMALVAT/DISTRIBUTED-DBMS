@@ -1,5 +1,7 @@
 package database;
 
+import support.Constants;
+
 import java.io.*;
 import java.lang.invoke.VarHandle;
 import java.util.*;
@@ -8,9 +10,10 @@ import java.util.regex.*;
 
 public class DatabaseHandler {
 
-    public static final String seprator = "<**>";
+    public static final String seprator = " <xx> ";
+    public static  final String ColumnSeprator = " <x> ";
+    public static final String space = " ";
     public static  String User1DB ="db1";
-    public static  String User2DB ="None";
 
     public static String DbPath = "./DatabaseSystem/Database/";
 
@@ -69,8 +72,47 @@ public class DatabaseHandler {
             return false;
         }
 
+    public static String addSeprator(String res,String ColumnName,String seprator){
+        res += ColumnName;
+        res += space;
+        res += seprator;
+        res += space;
+        return res;
+    }
+
+    public static boolean checkDbExist(String DbName){
+        File f = new File(DbPath + DbName);
+        if(!f.exists()){
+            System.out.println("DataBase Doesnot Exist!");
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean useDb(String query){
+        String [] words = query.split(" ");
+        if(!words[0].equals("use") || words.length != 2){
+            System.out.println("Please Enter Valid Query!");
+            return false;
+        }
+
+        String dataBaseName = words[1].trim();
+        if(!checkDbExist(dataBaseName)){
+            return false;
+        }
+        User1DB = dataBaseName;
+        return true;
+    }
+
     public static boolean CreateTable(String query,String DbName) throws IOException {
 
+        if(!checkDbExist(DbName)){
+            return false;
+        }
+
+        String DataDictIns = "";
+        String primaryKey = "";
+        String foreingKey = "";
         HashMap<String, Integer> DataType = new HashMap<>() {
             {
                 put("int", 1);
@@ -83,51 +125,48 @@ public class DatabaseHandler {
                 put("foreign", 1);
             }
         };
-            if (DbName == "None") {
+        if (DbName == "None") {
             System.out.println("You should first select the Database to create a table");
-         return false;
+            return false;
         }
         String path = DbPath + DbName + "/";
         query = query.toLowerCase();
         String arr[] = query.split(" ");
-
 //          Checking for the create keyword
-            if (!arr[0].equals("create")) {
+        if (!arr[0].equals("create")) {
             System.out.println("Please Enter Valid Query: Error in " + arr[0] + "  KEYWORD");
-                return false;
+            return false;
         }
-
 //           Checking for the table keyword
-            if (!arr[1].equals("table")) {
+        if (!arr[1].equals("table")) {
             System.out.println("Please Enter Valid Query: Error in " + arr[1] + "KEYWORD");
-                    return false;
+            return false;
         }
+//      Checking for the tableName
 
-        //           Checking for the tableName
         String TableName = "";
         String[] TableSeprate = arr[2].split("\\(");
         TableName = TableSeprate[0];
-            if (CheckSpecial(TableName)) {
+        if (CheckSpecial(TableName)) {
             System.out.println(arr[2] + " contains special character");
         }
+        DataDictIns = addSeprator(DataDictIns,TableName, seprator);
         int lastC = 0;
-            for (int i = 0; i < query.length(); i++) {
+        for (int i = 0; i < query.length(); i++) {
             if (query.charAt(i) == '(') {
                 lastC = i;
                 break;
             }
         }
-
-//          Checking for the validation of end of the query
+//      Checking for the validation of end of the query
         String Columns = query.substring(lastC + 1, query.length() - 1);
-
-            if (!query.substring(query.length() - 1, query.length()).equals(")")) {
+        if (!query.substring(query.length() - 1, query.length()).equals(")")) {
             System.out.println("Query is not valid");
         }
-
 //          Checking for the columns of the table
         String ColInsert = "";
         String DataInsert  = "";
+
         HashMap<String,Integer> Coldup = new HashMap<>();
         String[] column = Columns.split(",");
         for (String col : column) {
@@ -135,53 +174,59 @@ public class DatabaseHandler {
             String[] curCol = col.split(" ");
             if (curCol.length < 2) {
                 System.out.println("Invalid Query");
-                    return false;
-                }
+                return false;
+            }
             for(int j = 0 ; j < curCol.length; j ++){
 //                  Checking for the name of the column
                 if(j == 0 && !SQLkeys.containsKey(curCol[j]) && !DataType.containsKey(curCol[j]) && !(CheckSpecial(curCol[j])) && !Coldup.containsKey(curCol[j])){
                     ColInsert += curCol[j];
-                    Coldup.put(curCol[j] , 1);
+                    DataDictIns += curCol[j] + " ";
+                    Coldup.put(curCol[j],1);
                 }
-
 //                  Checking for the  datatype of the column
                 else if(j == 1 && DataType.containsKey(curCol[j])){
+                    DataDictIns += curCol[j] + " ";
                     DataInsert += curCol[j];
                 }
                 else if(j == 1 && !DataType.containsKey(curCol[j])){
                     System.out.println("Wrong Datatype entered");
-                        return false;
+                    return false;
                 }
-
 //                   checking for the sql keys of the table
                 if(j >= 2){
-                    System.out.println(curCol[j]);
                     if(SQLkeys.containsKey(curCol[j].trim())){
                         if(curCol[j].trim().equals("primary")){
                             if(j + 1 < curCol.length && curCol[j + 1].equals("key")) {
                                 ColInsert += " primarykey";
+                                if(primaryKey.equals("")){
+                                    primaryKey += "PRIMARY_KEY (" + curCol[0] + ") ";
+                                }
+                                else{
+                                    primaryKey += ColumnSeprator + " " + "PRIMARY_KEY(" + curCol[0] + ") ";
+                                }
                                 j++;
                             }
                             else{
                                 System.out.println("problem in primary key keyword");
-                                    return false;
+                                return false;
                             }
                         }
                         else if(curCol[j].equals("foreign")) {
                             if (curCol.length - j >= 4) {
                                 if (curCol[j + 1].equals("key") &&
                                         curCol[j + 2].equals("references")) {
-
                                     if (checkForeign(curCol[j + 3],DbName)) {
-
 //---------------------------------------------------------------------------------------------------------------------------------------
-                                        System.out.println(TableName + "(" + curCol[0] + ")"  + "-->" +  curCol[j + 3]);
-
-
+                                        System.out.println(curCol[j + 3]);
+                                        String []TableColumn = curCol[j + 3].replaceAll("[\\)\\(]", " ").trim().split(" ");
+                                        if(!foreingKey.equals("")){
+                                            foreingKey += ColumnSeprator;
+                                        }
+                                        foreingKey += "FOREIGN_KEY (" + TableColumn[0] + " , "+ TableColumn[1] + " )";
 
                                     } else {
                                         System.out.println("problem in foreign key");
-                                            return false;
+                                        return false;
                                     }
                                 }
                                 else{
@@ -197,24 +242,25 @@ public class DatabaseHandler {
                         }
                         else{
                             System.out.println("problem in query 2");
-                                    return false;
+                            return false;
                         }
                     }
                     else{
-                            System.out.println("Not a key");
-                            return false;
+                        System.out.println("Not a key");
+                        return false;
                     }
                 }
             }
             ColInsert += seprator;
             DataInsert += seprator;
+            DataDictIns += ColumnSeprator;
         }
         path = path + TableName;
-                        System.out.println(path);
+        System.out.println(path);
         File TableDir = new File(path);
-          if (TableDir.exists()) {
+        if(TableDir.exists()) {
             System.out.println("Table Already Exist!");
-                            return false;
+            return false;
         }
         TableDir.mkdir();
         String datafile = path + "/data.txt";
@@ -222,15 +268,39 @@ public class DatabaseHandler {
         File MetaFile  = new File(metafile);
         File DataFile  = new File(datafile);
         FileWriter fw = new FileWriter(MetaFile);
-                        MetaFile.createNewFile();
-                        DataFile.createNewFile();
-                        System.out.println(ColInsert);
-                        System.out.println(DataInsert);
-                        fw.write(ColInsert+ "\n") ;
-                        fw.write(DataInsert);
-                        fw.close();
-                        return true;
+        MetaFile.createNewFile();
+        DataFile.createNewFile();
+        System.out.println(ColInsert);
+        System.out.println(DataInsert);
+        fw.write(ColInsert+ "\n") ;
+        fw.write(DataInsert);
+        fw.close();
+        String DataDicEntry  = DataDictIns   + primaryKey  + ColumnSeprator + foreingKey + ";";
+        createDataDictionary(DataDicEntry, DbName);
+        System.out.println(DataDicEntry);
+        return true;
     }
+
+    public static void createDataDictionary(String data, String DbName) throws IOException {
+        File dataDictionaryFile = new File(DbPath + "/" + DbName + "/" + Constants.dataDictionaryFileName);
+        if(dataDictionaryFile.exists() ) {
+            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(dataDictionaryFile, true));
+            bufferedWriter.append(data);
+            bufferedWriter.append("\n");
+            bufferedWriter.close();
+        }
+        else
+        {
+            dataDictionaryFile.createNewFile();
+            FileWriter fileWriter = new FileWriter(dataDictionaryFile);
+            fileWriter.write("TABLES\t <xx> \tCOLUMNS");
+            fileWriter.append("\n");
+            fileWriter.write(data);
+            fileWriter.append("\n");
+            fileWriter.close();
+        }
+    }
+
     public static  void showDatabase(){
 
         String path = DbPath;
@@ -241,35 +311,16 @@ public class DatabaseHandler {
             }
         }
 
-        public void useDatabase(String  input){
-            String[] words = input.split(" ");
-            if(words.length > 2){
-                InvalidQuery();
-                return;
-            }
-            else{
-                String dbName= words[1];
-                String path = "";
-                path += dbName;
-                File file = new File(path);
-                if(file.exists()){
-                       User1DB = dbName;
-                    System.out.println("Using DataBase :" + dbName);
-                }else{
-
-                }
-
-            }
-        }
-
     public static boolean CreateDatabase(String query){
 
+        String origninalQuery = query;
+        String [] orginalWords = origninalQuery.split(" ");
         query = query.toLowerCase();
         String [] words = query.split(" ");
         if(!words[0].equals("create") && !words[1].equals("database") || words.length != 3){
             return false;
         }
-        String path = DbPath + words[2].trim();
+        String path = DbPath + orginalWords[2].trim();
         File f = new File(path);
         if(f.exists()){
              System.out.println("Database Already Exist");
@@ -279,7 +330,11 @@ public class DatabaseHandler {
         return true;
     }
 
-        public static boolean CheckTableExist(String DbName,String tableName){
+    public static boolean CheckTableExist(String DbName,String tableName){
+
+        if(!checkDbExist(DbName)){
+            return false;
+        }
 
         String Cpath = DbPath + DbName + "/" + tableName;
         File f = new File(Cpath);
@@ -288,25 +343,6 @@ public class DatabaseHandler {
             }
             return false;
         }
-        public static boolean insertTable(String query){
-
-            if(User1DB == "None"){
-                System.out.println("The database is not selected");
-                return false;
-            }
-            query = query.toLowerCase();
-            String []cols = query.split(" ");
-            if(cols.length < 4){
-                return false;
-            }
-
-            if(!cols[0].equals("insert") || !cols[1].equals("into") || !CheckTableExist(cols[2],User1DB) || !cols[3].equals("values")){
-                return false;
-            }
-            int index = query.indexOf("values");
-            query = query.substring(index + 6,query.length());
-            return false;
-    }
 
     public static boolean OperationUD(String DbName ,String tableName, String ColumnName, HashMap<String,Integer> oldVal, HashMap<Integer,String> updateVal , int flag, int NotIn) throws IOException {
 
@@ -391,6 +427,9 @@ public class DatabaseHandler {
 
     public static boolean CheckUpdate(String query,String DbName) throws IOException {
 
+        if(!checkDbExist(DbName)){
+            return false;
+        }
             query = query.toLowerCase();
             String []words = query.split(" ");
             if(words.length < 4){
@@ -495,6 +534,10 @@ public class DatabaseHandler {
     }
 
     public static boolean CheckDelete(String query,String DbName) throws IOException {
+
+        if(!checkDbExist(DbName)){
+            return false;
+        }
 
             query = query.toLowerCase();
             String []words = query.split(" ");
@@ -674,7 +717,7 @@ public static HashMap<Integer,Integer> SelectedColumns(String Db , String table 
     return mp1;
 }
 
-public static String CheckColumnExist(String DbName, String TableName, String query) throws IOException {
+    public static String CheckColumnExist(String DbName, String TableName, String query) throws IOException {
 
         String[] AfterColumns = new String[0];
         if (query.contains("=") || query.contains("in") || query.contains("!=") || query.contains("not in")) {
@@ -718,7 +761,7 @@ public static String CheckColumnExist(String DbName, String TableName, String qu
         return "False";
     }
 
-public static HashMap<String,Integer> SendColValues(String query) throws IOException {
+    public static HashMap<String,Integer> SendColValues(String query) throws IOException {
 
         HashMap<String, Integer> val = new HashMap<>();
         if (query.contains("=") || query.contains("in") || query.contains("!=") || query.contains("not in")) {
@@ -1014,9 +1057,12 @@ public static HashMap<String,Integer> SendColValues(String query) throws IOExcep
 //    public static void main(String args[]) throws IOException {
 //
 //
-//                CreateDatabase("create DATABASE tester");
+//                CreateDatabase("create DATABASE test1");
 //                showDatabase();
-//                CreateTable("create table user (userid varchar(255) FOREIGN KEY REFERENCES anas(userid), username int primary key)","DB1");
+    //create table Professor (userid varchar(255) FOREIGN KEY REFERENCES User(userid), professorName varchar(255), professorId int primary key)
+    //create table Student (userid varchar(255) FOREIGN KEY REFERENCES User(userid), studentName varchar(255), studentId int primary key)
+    //create table User (userName varchar(255), userid int primary key)
+//                CreateTable("create table Person (userid varchar(255) FOREIGN KEY REFERENCES User(userid), personName varchar(255), personID int primary key)","DB1");
 //                SelectFromTable("select userid,username from user where userid in (danu)","DB1");
 //                CheckUpdate("update user set userid = benny where userid != benny ", "DB1");
 //                CheckDelete("delete from user where userid = benny,asd)","DB1");
