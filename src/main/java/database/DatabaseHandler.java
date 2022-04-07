@@ -1016,7 +1016,7 @@ public static HashMap<String,Integer> SendColValues(String query) throws IOExcep
 //
 //                CreateDatabase("create DATABASE tester");
 //                showDatabase();
-//                CreateTable("create table kanu (userid varchar(255) FOREIGN KEY REFERENCES anas(userid), username int primary key)","DB1");
+//                CreateTable("create table user (userid varchar(255) FOREIGN KEY REFERENCES anas(userid), username int primary key)","DB1");
 //                SelectFromTable("select userid,username from user where userid in (danu)","DB1");
 //                CheckUpdate("update user set userid = benny where userid != benny ", "DB1");
 //                CheckDelete("delete from user where userid = benny,asd)","DB1");

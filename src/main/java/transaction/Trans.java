@@ -6,18 +6,19 @@ import java.nio.file.*;
 import java.util.*;
 
 import database.DatabaseHandler;
+import support.GlobalData;
 
-class transaction{
+public class Trans{
     private final List<String> changedFilesList;
     private List<String> currentQueries;
     private TranactionTable table;
     private String database = "";
 
     //costructor of the class
-    transaction(String user){
+    public Trans(){
         this.changedFilesList =  new ArrayList<String>();
         this.currentQueries = new ArrayList<String>();
-        this.table = new TranactionTable(user);
+        this.table = new TranactionTable(GlobalData.userId);
     }
     
     //checks start of the queries and returns true if query statements has right keywords
@@ -87,10 +88,9 @@ class transaction{
     }
 
     //reads queries from the file
-    public boolean processTransaction(String filepath){
+    public boolean processTransaction(List<String> lines){
+        System.out.println(lines);
         try {
-            Path path = Paths.get(filepath);
-            List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
             String[] useDatabase = lines.get(0).split("\\s+");
             if(useDatabase[0].toLowerCase().equals("use")){
                 database = useDatabase[1].substring(0,(useDatabase[1].length()-1));
@@ -109,30 +109,37 @@ class transaction{
                             if(keywords[0].equals("create")){
                                 if(keywords[1].equals("table")){
                                     table.createTable(query, database);
+                                    //LOG - create table sucessfull
                                 }
                                 if(keywords[1].equals("database")){
                                     table.createDatabase(query);
+                                    //LOG - create database sucessfull
                                 }  
                             }
 
                             if(keywords[0].equals("update")){
                                 table.updateTable(query, database);
+                                //LOG - updated value done
                             }
 
                             if(keywords[0].equals("insert")){
                                 table.insertIntoTabel(query, database);
+                                //LOG - insert into done
                             }
 
                             if(keywords[0].equals("delete")){
                                 table.deleteFromTable(query, database);
+                                //LOG - delete from a table is done
                             }
 
                             if(keywords[0].equals("commit")){
                                 table.commit();
+                                //LOG - transaction commited
                             }
 
                             if(keywords[0].equals("rollback")){
                                 table.rollback();
+                                //LOG - transaction rolled back
                             }
 
                        }catch(Exception e){
