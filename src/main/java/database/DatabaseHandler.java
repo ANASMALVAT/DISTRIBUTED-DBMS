@@ -12,7 +12,7 @@ public class DatabaseHandler {
     public static  String User1DB ="db1";
     public static  String User2DB ="None";
 
-    public static String DbPath = "./DatabaseSystem/Database/";
+    public static String DbPath = "dmwa-project-team_dpg_17/DatabaseSystem/Database/";
 
     public static boolean CheckSpecial(String chk) {
             Pattern pattern = Pattern.compile("[^a-zA-Z0-9_]");
@@ -83,27 +83,27 @@ public class DatabaseHandler {
                 put("foreign", 1);
             }
         };
-            if (DbName == "None") {
+        if (DbName == "None") {
             System.out.println("You should first select the Database to create a table");
-         return false;
+            return false;
         }
         String path = DbPath + DbName + "/";
         query = query.toLowerCase();
         String arr[] = query.split(" ");
 
-//          Checking for the create keyword
-            if (!arr[0].equals("create")) {
+        //Checking for the create keyword
+        if (!arr[0].equals("create")) {
             System.out.println("Please Enter Valid Query: Error in " + arr[0] + "  KEYWORD");
-                return false;
+            return false;
         }
 
-//           Checking for the table keyword
-            if (!arr[1].equals("table")) {
+        //Checking for the table keyword
+        if (!arr[1].equals("table")) {
             System.out.println("Please Enter Valid Query: Error in " + arr[1] + "KEYWORD");
-                    return false;
+            return false;
         }
 
-        //           Checking for the tableName
+        //Checking for the tableName
         String TableName = "";
         String[] TableSeprate = arr[2].split("\\(");
         TableName = TableSeprate[0];
@@ -231,6 +231,7 @@ public class DatabaseHandler {
                         fw.close();
                         return true;
     }
+    
     public static  void showDatabase(){
 
         String path = DbPath;
@@ -240,7 +241,7 @@ public class DatabaseHandler {
                 System.out.println(DataBase[i]);
             }
         }
-
+    
         public void useDatabase(String  input){
             String[] words = input.split(" ");
             if(words.length > 2){
@@ -261,7 +262,6 @@ public class DatabaseHandler {
 
             }
         }
-
     public static boolean CreateDatabase(String query){
 
         query = query.toLowerCase();
@@ -279,7 +279,7 @@ public class DatabaseHandler {
         return true;
     }
 
-        public static boolean CheckTableExist(String DbName,String tableName){
+    public static boolean CheckTableExist(String DbName,String tableName){
 
         String Cpath = DbPath + DbName + "/" + tableName;
         File f = new File(Cpath);
@@ -288,7 +288,7 @@ public class DatabaseHandler {
             }
             return false;
         }
-        public static boolean insertTable(String query){
+    public static boolean insertTable(String query){
 
             if(User1DB == "None"){
                 System.out.println("The database is not selected");
@@ -642,39 +642,39 @@ public class DatabaseHandler {
             return;
         }
 
-public static HashMap<Integer,Integer> SelectedColumns(String Db , String table ,String query) throws IOException
-{
-    HashMap<Integer,Integer> mp1= new HashMap<>();
-    String curPath = DbPath + Db + "/" + table + "/meta.txt";
-    File f = new File(curPath);
-    BufferedReader bf = new BufferedReader(new FileReader(f));
-    String line = bf.readLine();
-    String []Columns = line.split(Pattern.quote(seprator));
-    String [] queryCols = query.split(",");
-    int cnt  = query.length() - query.replace(",","").length();
-    if(queryCols.length <= cnt){
-        System.out.println("Columns are missing!");
-        return null;
-    }
-    HashMap<String,Integer> AvaiableCols = new HashMap<>();
-    for(int  i = 0  ; i < Columns.length ; i ++){
-        String []tmp = Columns[i].split(" ");
-        AvaiableCols.put(tmp[0].trim(),i);
-    }
-
-    for(int i = 0 ; i < queryCols.length ; i ++){
-        if(AvaiableCols.containsKey(queryCols[i].trim())){
-            mp1.put(AvaiableCols.get(queryCols[i].trim()),1);
-        }
-        else{
-            System.out.println("Column Doesnot Exist in table!");
+    public static HashMap<Integer,Integer> SelectedColumns(String Db , String table ,String query) throws IOException
+    {
+        HashMap<Integer,Integer> mp1= new HashMap<>();
+        String curPath = DbPath + Db + "/" + table + "/meta.txt";
+        File f = new File(curPath);
+        BufferedReader bf = new BufferedReader(new FileReader(f));
+        String line = bf.readLine();
+        String []Columns = line.split(Pattern.quote(seprator));
+        String [] queryCols = query.split(",");
+        int cnt  = query.length() - query.replace(",","").length();
+        if(queryCols.length <= cnt){
+            System.out.println("Columns are missing!");
             return null;
         }
-    }
-    return mp1;
-}
+        HashMap<String,Integer> AvaiableCols = new HashMap<>();
+        for(int  i = 0  ; i < Columns.length ; i ++){
+            String []tmp = Columns[i].split(" ");
+            AvaiableCols.put(tmp[0].trim(),i);
+        }
 
-public static String CheckColumnExist(String DbName, String TableName, String query) throws IOException {
+        for(int i = 0 ; i < queryCols.length ; i ++){
+            if(AvaiableCols.containsKey(queryCols[i].trim())){
+                mp1.put(AvaiableCols.get(queryCols[i].trim()),1);
+            }
+            else{
+                System.out.println("Column Doesnot Exist in table!");
+                return null;
+            }
+        }
+        return mp1;
+    }
+
+    public static String CheckColumnExist(String DbName, String TableName, String query) throws IOException {
 
         String[] AfterColumns = new String[0];
         if (query.contains("=") || query.contains("in") || query.contains("!=") || query.contains("not in")) {
@@ -718,7 +718,7 @@ public static String CheckColumnExist(String DbName, String TableName, String qu
         return "False";
     }
 
-public static HashMap<String,Integer> SendColValues(String query) throws IOException {
+    public static HashMap<String,Integer> SendColValues(String query) throws IOException {
 
         HashMap<String, Integer> val = new HashMap<>();
         if (query.contains("=") || query.contains("in") || query.contains("!=") || query.contains("not in")) {
@@ -983,7 +983,7 @@ public static HashMap<String,Integer> SendColValues(String query) throws IOExcep
                         }
                     }
                     if(ColumnDatatype[it].trim().equals("int")){
-                        if(!isNumeric(colVal[it])){
+                        if(!isNumeric(colVal[it].trim())){
                             System.out.println("Datatype didn't match!");
                             return false;
                         }
@@ -1011,9 +1011,8 @@ public static HashMap<String,Integer> SendColValues(String query) throws IOExcep
         System.out.println("The Query is Invalid!");
         System.out.println();
     }
-//    public static void main(String args[]) throws IOException {
-//
-//
+
+    public static void main(String args[]) throws IOException {
 //                CreateDatabase("create DATABASE tester");
 //                showDatabase();
 //                CreateTable("create table kanu (userid varchar(255) FOREIGN KEY REFERENCES anas(userid), username int primary key)","DB1");
@@ -1021,7 +1020,7 @@ public static HashMap<String,Integer> SendColValues(String query) throws IOExcep
 //                CheckUpdate("update user set userid = benny where userid != benny ", "DB1");
 //                CheckDelete("delete from user where userid = benny,asd)","DB1");
 //                CheckInsert("insert into user values (a,1,c),  (d,2,f)","DB1");
-//    }
+    }
 
 }
 

@@ -43,11 +43,15 @@ public class GUI {
             System.out.println("2. Export");
             System.out.println("3. Data Model");
             System.out.println("4. Analytics");
+            System.out.println("5. Transaction");
             System.out.println("5. Quit");
             System.out.print("Enter value of option chosen and press enter to continue: ");
             String line = reader.readLine();
-            if(line.equals("5")) {
+            if(line.equals("6")) {
                 return;
+            }
+            if(line.equals("5")){
+
             }
             if(line.equals("4")) {
                 erdCreator.createERDDiagram("u1", "db1");
