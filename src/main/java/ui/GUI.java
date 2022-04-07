@@ -5,6 +5,8 @@ import auth.User;
 import database.DatabaseHandler;
 import datadump.datadumpCreator;
 import erd.erdCreator;
+import logmanagement.GeneralLogs;
+import logmanagement.QueryLogs;
 import support.GlobalData;
 
 import java.io.BufferedReader;
@@ -81,6 +83,8 @@ public class GUI {
 
     private void handleQuery() throws IOException {
         DatabaseHandler databaseHandler = new DatabaseHandler();
+        GeneralLogs genLogs = new GeneralLogs();
+        QueryLogs queryLogs = new QueryLogs();
         System.out.print("Enter query: ");
         String query = reader.readLine();
         query = query.toLowerCase();
@@ -88,27 +92,39 @@ public class GUI {
             long startTime = System.currentTimeMillis();
             databaseHandler.SelectFromTable(query,"DB1");
             long endTime = System.currentTimeMillis();
+            genLogs.writeGeneralLogs(startTime,endTime);
+            queryLogs.writeQueryLogs(startTime,endTime);
         } else if (query.contains("update")) {
             long startTime = System.currentTimeMillis();
             databaseHandler.CheckUpdate(query, "DB1");
             long endTime = System.currentTimeMillis();
+            genLogs.writeGeneralLogs(startTime,endTime);
+            queryLogs.writeQueryLogs(startTime,endTime);
         } else if (query.contains("delete")) {
             long startTime = System.currentTimeMillis();
             databaseHandler.CheckDelete(query,"DB1");
             long endTime = System.currentTimeMillis();
+            genLogs.writeGeneralLogs(startTime,endTime);
+            queryLogs.writeQueryLogs(startTime,endTime);
         } else if (query.contains("insert")) {
             long startTime = System.currentTimeMillis();
             databaseHandler.CheckInsert(query,"DB1");
             long endTime = System.currentTimeMillis();
+            genLogs.writeGeneralLogs(startTime,endTime);
+            queryLogs.writeQueryLogs(startTime,endTime);
         } else if (query.contains("create")) {
             if (query.contains("database")) {
                 long startTime = System.currentTimeMillis();
                 databaseHandler.CreateDatabase(query);
                 long endTime = System.currentTimeMillis();
+                genLogs.writeGeneralLogs(startTime,endTime);
+                queryLogs.writeQueryLogs(startTime,endTime);
             } else if (query.contains("table")) {
                 long startTime = System.currentTimeMillis();
                 databaseHandler.CreateTable(query,"DB1");
                 long endTime = System.currentTimeMillis();
+                genLogs.writeGeneralLogs(startTime,endTime);
+                queryLogs.writeQueryLogs(startTime,endTime);
             }
         }
         System.out.println("Query executed");
