@@ -9,7 +9,7 @@ import support.GlobalData;
 
 public class User {
     private BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-    public static String dbPath = "./DatabaseSystem/";
+    public static String dbPath = "";
 
     public void registration() throws IOException {
         File file = new File(dbPath + "User_Profile.txt");
