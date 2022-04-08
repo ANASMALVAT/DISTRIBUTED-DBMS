@@ -16,7 +16,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import transaction.Trans;
+import transaction.TransactionDB;
 
 public class GUI {
     private BufferedReader reader;
@@ -102,7 +102,7 @@ public class GUI {
         List<String> queries = new ArrayList<String>(Arrays.asList(query.split(";")));
         
         if(queries.size() > 1){
-            Trans tx = new Trans();
+            TransactionDB tx = new TransactionDB();
             tx.processTransaction(queries); 
 
         } else if (query.contains("select")) {
