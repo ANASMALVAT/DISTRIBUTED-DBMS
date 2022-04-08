@@ -14,7 +14,7 @@ public class DatabaseHandler {
     public static final String seprator = " <xx> ";
     public static  final String ColumnSeprator = " <x> ";
     public static final String space = " ";
-    public static  String User1DB ="DB1";
+    public static  String User1DB ="null";
 
     public static String DbPath = "./DatabaseSystem/Database/";
 
