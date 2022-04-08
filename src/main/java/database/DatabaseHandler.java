@@ -1,6 +1,7 @@
 package database;
 
 import support.Constants;
+import support.GlobalData;
 
 import java.io.*;
 import java.lang.invoke.VarHandle;
@@ -13,7 +14,7 @@ public class DatabaseHandler {
     public static final String seprator = " <xx> ";
     public static  final String ColumnSeprator = " <x> ";
     public static final String space = " ";
-    public static  String User1DB ="db1";
+    public static  String User1DB ="DB1";
 
     public static String DbPath = "./DatabaseSystem/Database/";
 
@@ -82,7 +83,7 @@ public class DatabaseHandler {
 
     public static boolean checkDbExist(String DbName){
         File f = new File(DbPath + DbName);
-        if(!f.exists()){
+        if(!f.isDirectory()){
             System.out.println("DataBase Doesnot Exist!");
             return false;
         }
@@ -92,7 +93,6 @@ public class DatabaseHandler {
     public static boolean useDb(String query){
         String [] words = query.split(" ");
         if(!words[0].equals("use") || words.length != 2){
-            System.out.println("Please Enter Valid Query!");
             return false;
         }
 
@@ -107,6 +107,7 @@ public class DatabaseHandler {
     public static boolean CreateTable(String query,String DbName) throws IOException {
 
         if(!checkDbExist(DbName)){
+            System.out.println(DbName);
             return false;
         }
 
@@ -301,7 +302,7 @@ public class DatabaseHandler {
         }
     }
 
-    public static  void showDatabase(){
+    public static void showDatabase(){
 
         String path = DbPath;
         File f = new File(path);
@@ -423,7 +424,6 @@ public class DatabaseHandler {
             ft.renameTo(new File(dataPath));
             return true;
         }
-
 
     public static boolean CheckUpdate(String query,String DbName) throws IOException {
 
@@ -685,37 +685,37 @@ public class DatabaseHandler {
             return;
         }
 
-public static HashMap<Integer,Integer> SelectedColumns(String Db , String table ,String query) throws IOException
-{
-    HashMap<Integer,Integer> mp1= new HashMap<>();
-    String curPath = DbPath + Db + "/" + table + "/meta.txt";
-    File f = new File(curPath);
-    BufferedReader bf = new BufferedReader(new FileReader(f));
-    String line = bf.readLine();
-    String []Columns = line.split(Pattern.quote(seprator));
-    String [] queryCols = query.split(",");
-    int cnt  = query.length() - query.replace(",","").length();
-    if(queryCols.length <= cnt){
-        System.out.println("Columns are missing!");
-        return null;
-    }
-    HashMap<String,Integer> AvaiableCols = new HashMap<>();
-    for(int  i = 0  ; i < Columns.length ; i ++){
-        String []tmp = Columns[i].split(" ");
-        AvaiableCols.put(tmp[0].trim(),i);
-    }
-
-    for(int i = 0 ; i < queryCols.length ; i ++){
-        if(AvaiableCols.containsKey(queryCols[i].trim())){
-            mp1.put(AvaiableCols.get(queryCols[i].trim()),1);
-        }
-        else{
-            System.out.println("Column Doesnot Exist in table!");
+    public static HashMap<Integer,Integer> SelectedColumns(String Db , String table ,String query) throws IOException
+    {
+        HashMap<Integer,Integer> mp1= new HashMap<>();
+        String curPath = DbPath + Db + "/" + table + "/meta.txt";
+        File f = new File(curPath);
+        BufferedReader bf = new BufferedReader(new FileReader(f));
+        String line = bf.readLine();
+        String []Columns = line.split(Pattern.quote(seprator));
+        String [] queryCols = query.split(",");
+        int cnt  = query.length() - query.replace(",","").length();
+        if(queryCols.length <= cnt){
+            System.out.println("Columns are missing!");
             return null;
         }
+        HashMap<String,Integer> AvaiableCols = new HashMap<>();
+        for(int  i = 0  ; i < Columns.length ; i ++){
+            String []tmp = Columns[i].split(" ");
+            AvaiableCols.put(tmp[0].trim(),i);
+        }
+
+        for(int i = 0 ; i < queryCols.length ; i ++){
+            if(AvaiableCols.containsKey(queryCols[i].trim())){
+                mp1.put(AvaiableCols.get(queryCols[i].trim()),1);
+            }
+            else{
+                System.out.println("Column Doesnot Exist in table!");
+                return null;
+            }
+        }
+        return mp1;
     }
-    return mp1;
-}
 
     public static String CheckColumnExist(String DbName, String TableName, String query) throws IOException {
 
@@ -1049,11 +1049,11 @@ public static HashMap<Integer,Integer> SelectedColumns(String Db , String table 
         return true;
     }
 
-    public void InvalidQuery(){
-        System.out.println();
-        System.out.println("The Query is Invalid!");
-        System.out.println();
-    }
+//    public void InvalidQuery(){
+//        System.out.println();
+//        System.out.println("The Query is Invalid!");
+//        System.out.println();
+//    }
 //    public static void main(String args[]) throws IOException {
 //
 //
@@ -1061,7 +1061,7 @@ public static HashMap<Integer,Integer> SelectedColumns(String Db , String table 
 //                showDatabase();
     //create table Professor (userid varchar(255) FOREIGN KEY REFERENCES User(userid), professorName varchar(255), professorId int primary key)
     //create table Student (userid varchar(255) FOREIGN KEY REFERENCES User(userid), studentName varchar(255), studentId int primary key)
-    //create table User (userName varchar(255), userid int primary key)
+    //create table User1 (userName varchar(255), userid int primary key)
 //                CreateTable("create table Person (userid varchar(255) FOREIGN KEY REFERENCES User(userid), personName varchar(255), personID int primary key)","DB1");
 //                SelectFromTable("select userid,username from user where userid in (danu)","DB1");
 //                CheckUpdate("update user set userid = benny where userid != benny ", "DB1");

@@ -21,7 +21,6 @@ public class EventLogs {
         String event_var;
         if(fileExists)
         {
-
             event_var = "," + "\r\n" +"{" + "\r\n" + "Message: \""  + msg + "\",\r\n" + "timestamp: \"" +timestamp + "\",\r\n" + "query: \""  + query + "\",\r\n" + "user: \"" + GlobalData.userId + "\",\r\n" + "Database name: \"" + databaseName + "\",\r\n" + "QueryType: \"" + queryType + "\",\r\n" +"}";
         }
         else
@@ -32,6 +31,4 @@ public class EventLogs {
         writer.write(event_var);
         writer.close();
     }
-
-
 }
