@@ -1,5 +1,6 @@
 package database;
 
+import logmanagement.EventLogs;
 import org.apache.commons.io.FileUtils;
 import support.Constants;
 import support.GlobalData;
@@ -8,6 +9,7 @@ import java.io.*;
 import java.lang.invoke.VarHandle;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.*;
 import java.util.regex.*;
 
@@ -18,6 +20,8 @@ public class DatabaseHandler {
     public static  final String ColumnSeprator = " <x> ";
     public static final String space = " ";
     public static  String User1DB ="null";
+
+    static EventLogs eventLogs = new EventLogs();
 
     public static String DbPath = "./DatabaseSystem/Database/";
 
@@ -69,9 +73,15 @@ public class DatabaseHandler {
                 }
             }
             else{
+                Instant timestamp = Instant.now();
+                eventLogs.writeEventLogs
+                        (" Error: The referenced table does not exist", timestamp, "", DbName, "");
                 System.out.println("refrenced table in the foreign key doesnot key");
                 return false;
             }
+        Instant timestamp = Instant.now();
+        eventLogs.writeEventLogs
+                (" Error: The referenced column does not exist", timestamp, "", DbName, "");
             System.out.println("Referenced Column doesnot exist");
             return false;
         }
@@ -87,13 +97,15 @@ public class DatabaseHandler {
     public static boolean checkDbExist(String DbName){
         File f = new File(DbPath + DbName);
         if(!f.isDirectory()){
+
             System.out.println("DataBase Doesnot Exist!");
             return false;
         }
         return true;
     }
 
-    public static boolean useDb(String query){
+    public static boolean useDb(String query) throws IOException {
+        query= query.trim().replaceAll(" +"," ");
         String [] words = query.split(" ");
         if(!words[0].equals("use") || words.length != 2){
             return false;
@@ -104,13 +116,25 @@ public class DatabaseHandler {
             return false;
         }
         User1DB = dataBaseName;
+        Instant timestamp = Instant.now();
+
+        String DbName = null;
+        eventLogs.writeEventLogs
+                (" Query executed successfully", timestamp, query, DbName, "Use database");
         return true;
     }
 
+
+
     public static boolean CreateTable(String query,String DbName) throws IOException {
+        query= query.trim().replaceAll(" +"," ");
 
         if(!checkDbExist(DbName)){
             System.out.println(DbName);
+
+            Instant timestamp = Instant.now();
+            eventLogs.writeEventLogs
+                    ("Error: Select the Database first to create a table", timestamp, query, DbName, "Create Table");
             return false;
         }
 
@@ -130,6 +154,10 @@ public class DatabaseHandler {
             }
         };
         if (DbName == "None") {
+
+            Instant timestamp = Instant.now();
+            eventLogs.writeEventLogs
+                    ("Error: Select the Database first to create a table", timestamp, query, DbName, "Create Table");
             System.out.println("You should first select the Database to create a table");
             return false;
         }
@@ -165,6 +193,9 @@ public class DatabaseHandler {
 //      Checking for the validation of end of the query
         String Columns = query.substring(lastC + 1, query.length() - 1);
         if (!query.substring(query.length() - 1, query.length()).equals(")")) {
+            Instant timestamp = Instant.now();
+            eventLogs.writeEventLogs
+                    ("Error: Invalid query entered", timestamp, query, DbName, "Create Table");
             System.out.println("Query is not valid");
         }
 //          Checking for the columns of the table
@@ -177,6 +208,9 @@ public class DatabaseHandler {
             col = col.trim();
             String[] curCol = col.split(" ");
             if (curCol.length < 2) {
+                Instant timestamp = Instant.now();
+                eventLogs.writeEventLogs
+                        ("Error: Invalid query entered", timestamp, query, DbName, "Create Table");
                 System.out.println("Invalid Query");
                 return false;
             }
@@ -193,6 +227,9 @@ public class DatabaseHandler {
                     DataInsert += curCol[j];
                 }
                 else if(j == 1 && !DataType.containsKey(curCol[j])){
+                    Instant timestamp = Instant.now();
+                    eventLogs.writeEventLogs
+                            ("Error: Incorrect datatype entered by the user", timestamp, query, DbName, "Create Table");
                     System.out.println("Wrong Datatype entered");
                     return false;
                 }
@@ -211,6 +248,9 @@ public class DatabaseHandler {
                                 j++;
                             }
                             else{
+                                Instant timestamp = Instant.now();
+                                eventLogs.writeEventLogs
+                                        ("Error: Incorrect primary key keyword", timestamp, query, DbName, "Create Table");
                                 System.out.println("problem in primary key keyword");
                                 return false;
                             }
@@ -229,27 +269,42 @@ public class DatabaseHandler {
                                         foreingKey += "FOREIGN_KEY (" + TableColumn[0] + " , "+ TableColumn[1] + " )";
 
                                     } else {
+                                        Instant timestamp = Instant.now();
+                                        eventLogs.writeEventLogs
+                                                ("Error: Incorrect foreign key", timestamp, query, DbName, "Create Table");
                                         System.out.println("problem in foreign key");
                                         return false;
                                     }
                                 }
                                 else{
-                                    System.out.println("Problem in keywords such as refrences or foreign key");
+                                    Instant timestamp = Instant.now();
+                                    eventLogs.writeEventLogs
+                                            ("Error: Incorrect keyword references or foreign key", timestamp, query, DbName, "Create Table");
+                                    System.out.println("Incorrect keyword reference or foreign key");
                                     return false;
                                 }
                                 j+= 4;
                             }
                             else{
+                                Instant timestamp = Instant.now();
+                                eventLogs.writeEventLogs
+                                        ("Error: Incorrect foreign key", timestamp, query, DbName, "Create Table");
                                 System.out.println("foreign key not valid");
                                 return false;
                             }
                         }
                         else{
-                            System.out.println("problem in query 2");
+                            Instant timestamp = Instant.now();
+                            eventLogs.writeEventLogs
+                                    ("Error: Incorrect key attribute", timestamp, query, DbName, "Create Table");
+                            System.out.println("Not a valid key attribute");
                             return false;
                         }
                     }
                     else{
+                        Instant timestamp = Instant.now();
+                        eventLogs.writeEventLogs
+                                ("Error: Incorrect primary key keyword", timestamp, query, DbName, "Create Table");
                         System.out.println("Not a key");
                         return false;
                     }
@@ -263,6 +318,9 @@ public class DatabaseHandler {
         System.out.println(path);
         File TableDir = new File(path);
         if(TableDir.exists()) {
+            Instant timestamp = Instant.now();
+            eventLogs.writeEventLogs
+                    ("Error: Table already exists", timestamp, query, DbName, "Create Table");
             System.out.println("Table Already Exist!");
             return false;
         }
@@ -282,6 +340,9 @@ public class DatabaseHandler {
         String DataDicEntry  = DataDictIns   + primaryKey  + ColumnSeprator + foreingKey + ";";
         createDataDictionary(DataDicEntry, DbName);
         System.out.println(DataDicEntry);
+        Instant timestamp = Instant.now();
+        eventLogs.writeEventLogs
+                ("Query executed successfully", timestamp, query, DbName, "Create Table");
         return true;
     }
 
@@ -315,28 +376,38 @@ public class DatabaseHandler {
             }
         }
 
-    public static boolean CreateDatabase(String query){
+    public static boolean CreateDatabase(String query) throws IOException {
+        query= query.trim().replaceAll(" +"," ");
 
         String origninalQuery = query;
-        String [] orginalWords = origninalQuery.split(" ");
+        String[] orginalWords = origninalQuery.split(" ");
         query = query.toLowerCase();
-        String [] words = query.split(" ");
-        if(!words[0].equals("create") && !words[1].equals("database") || words.length != 3){
+        String[] words = query.split(" ");
+        if (!words[0].equals("create") && !words[1].equals("database") || words.length != 3) {
             return false;
         }
         String path = DbPath + orginalWords[2].trim();
         File f = new File(path);
-        if(f.exists()){
-             System.out.println("Database Already Exist");
-             return false;
-         }
+        String DbName = null;
+        if (f.exists()) {
+            Instant timestamp = Instant.now();
+            DbName = null;
+            eventLogs.writeEventLogs
+                    ("Error: Database already exists", timestamp, query, DbName, "Create Database");
+            System.out.println("Database Already Exist");
+            return false;
+        }
         f.mkdir();
+        Instant timestamp = Instant.now();
+        eventLogs.writeEventLogs
+                ("Query executed successfully", timestamp, query, DbName, "Create Table");
         return true;
     }
 
-    public static boolean CheckTableExist(String DbName,String tableName){
+    public static boolean CheckTableExist(String DbName,String tableName) throws IOException {
 
         if(!checkDbExist(DbName)){
+            
             return false;
         }
 
@@ -349,95 +420,104 @@ public class DatabaseHandler {
         }
 
     public static boolean OperationUD(String DbName ,String tableName, String ColumnName, HashMap<String,Integer> oldVal, HashMap<Integer,String> updateVal , int flag, int NotIn) throws IOException {
-            System.out.println(ColumnName);
-            String curPath = DbPath + DbName + "/" + tableName;
-            String metaPath = curPath + "/meta.txt";
-            String dataPath = curPath + "/data.txt";
-            File fm = new File(metaPath);
-            BufferedReader bm = new BufferedReader(new FileReader(fm));
-            String line = bm.readLine();
-            bm.close();
-            String Col[] = line.split(Pattern.quote(seprator));
-            int IsColumnExist = -1;
-            for(int i = 0; i < Col.length ; i++){
-                String[] Colchk = Col[i].split(" ");
+        System.out.println(ColumnName);
+        String curPath = DbPath + DbName + "/" + tableName;
+        String metaPath = curPath + "/meta.txt";
+        String dataPath = curPath + "/data.txt";
+        File fm = new File(metaPath);
+        BufferedReader bm = new BufferedReader(new FileReader(fm));
+        String line = bm.readLine();
+        bm.close();
+        String Col[] = line.split(Pattern.quote(seprator));
+        int IsColumnExist = -1;
+        for (int i = 0; i < Col.length; i++) {
+            String[] Colchk = Col[i].split(" ");
 
-                if(Colchk.length == 2){
-                    for(int j =0; j< Colchk.length;j++)
-                    {
-                        if(Colchk[j].equals(ColumnName)){
-                            IsColumnExist = i;
-                            break;
-                        }
-                        else{
-                            continue;
-                        }
+            if (Colchk.length == 2) {
+                for (int j = 0; j < Colchk.length; j++) {
+                    if (Colchk[j].equals(ColumnName)) {
+                        IsColumnExist = i;
+                        break;
+                    } else {
+                        continue;
                     }
                 }
-                if(Col[i].equals(ColumnName)){
-                    IsColumnExist = i;
-                    break;
-                }
             }
-            if(IsColumnExist == -1 && ColumnName.length() > 0){
-                System.out.println("Column Doesnot Exist!");
-                return false;
+            if (Col[i].equals(ColumnName)) {
+                IsColumnExist = i;
+                break;
             }
-            File fr = new File(dataPath);
-            BufferedReader br = new BufferedReader(new FileReader(fr));
-            File ft = new File(curPath + "/temp.txt");
-            FileWriter fw  = new FileWriter(ft);
-            while((line = br.readLine()) != null){
-                String words[] = line.split(Pattern.quote(seprator));
-                if(flag == 0){
-                    for(int i = 0; i < words.length ; i ++){
-                        if( ColumnName.length() == 0 || oldVal.containsKey(words[IsColumnExist].trim())) {
-                            if(NotIn == 0) {
-                                if (updateVal.containsKey(i)) {
-                                    words[i] = updateVal.get(i);
-                                }
+        }
+        String query = null;
+        if (IsColumnExist == -1 && ColumnName.length() > 0) {
+            Instant timestamp = Instant.now();
+            query = null;
+            String queryType = "";
+            if (flag == 0) {
+                queryType = "Update Table";
+            } else {
+                queryType = "Delete Table";
+            }
+            eventLogs.writeEventLogs
+                    ("Error: Column does not exist", timestamp, query, DbName, queryType);
+            System.out.println("Column Doesnot Exist!");
+            return false;
+        }
+        File fr = new File(dataPath);
+        BufferedReader br = new BufferedReader(new FileReader(fr));
+        File ft = new File(curPath + "/temp.txt");
+        FileWriter fw = new FileWriter(ft);
+        while ((line = br.readLine()) != null) {
+            String words[] = line.split(Pattern.quote(seprator));
+            if (flag == 0) {
+                for (int i = 0; i < words.length; i++) {
+                    if (ColumnName.length() == 0 || oldVal.containsKey(words[IsColumnExist].trim())) {
+                        if (NotIn == 0) {
+                            if (updateVal.containsKey(i)) {
+                                words[i] = updateVal.get(i);
                             }
                         }
-                        else{
-                            if(NotIn == 1){
-                                if (updateVal.containsKey(i)) {
-                                    words[i] = updateVal.get(i);
-                                }
+                    } else {
+                        if (NotIn == 1) {
+                            if (updateVal.containsKey(i)) {
+                                words[i] = updateVal.get(i);
                             }
                         }
                     }
-                    String temp = String.join(seprator,words);
-                    fw.write(temp +"\n");
-
                 }
+                String temp = String.join(seprator, words);
+                fw.write(temp + "\n");
 
-                else if(flag == 1){
-                    if(IsColumnExist != -1 && !oldVal.containsKey(words[IsColumnExist].trim())){
-                        if(NotIn == 0) {
-                            String temp = String.join(seprator, words);
-                            fw.write(temp + "\n");
-                        }
+            } else if (flag == 1) {
+                if (IsColumnExist != -1 && !oldVal.containsKey(words[IsColumnExist].trim())) {
+                    if (NotIn == 0) {
+                        String temp = String.join(seprator, words);
+                        fw.write(temp + "\n");
                     }
-                    else{
-                        if(NotIn == 1){
-                            String temp = String.join(seprator, words);
-                            fw.write(temp + "\n");
-                        }
+                } else {
+                    if (NotIn == 1) {
+                        String temp = String.join(seprator, words);
+                        fw.write(temp + "\n");
                     }
                 }
             }
-
-            fw.close();
-            br.close();
-            System.gc();
-            if(ft.exists()){
-                FileUtils.delete(fr);
-                ft.renameTo(fr);
-            }
-            return true;
         }
 
+        fw.close();
+        br.close();
+        System.gc();
+        if (ft.exists()) {
+            FileUtils.delete(fr);
+            ft.renameTo(fr);
+        }
+        Instant timestamp = Instant.now();
+        eventLogs.writeEventLogs
+                ("Query executed successfully", timestamp, query, DbName, "Update Table");
+        return true;
+    }
+
     public static boolean CheckUpdate(String query,String DbName) throws IOException {
+        query= query.trim().replaceAll(" +"," ");
 
         if(!checkDbExist(DbName)){
             return false;
@@ -448,12 +528,18 @@ public class DatabaseHandler {
                 return false;
             }
             if(!words[0].equals("update") || !words[2].equals("set")){
+                Instant timestamp = Instant.now();
+                eventLogs.writeEventLogs
+                        ("Error: Problem in the keyword - 'Update' or 'Set' ", timestamp, query, DbName, "Update Table");
                 System.out.println("Problem in the keyword update or set");
                 return false;
             }
 
             if(!CheckTableExist(DbName,words[1])){
-                System.out.println("Table does not exist " + words[1]);
+                Instant timestamp = Instant.now();
+                eventLogs.writeEventLogs
+                        ("Error: Table already exists", timestamp, query, DbName, "Update Table");
+                System.out.println("Table does not exist " + words[1]); 
                 return false;
             }
 
@@ -466,12 +552,18 @@ public class DatabaseHandler {
             String  AfterSet = temp[1];
             String[] temp1 = AfterSet.split("where");
             if(temp1.length < 2){
+                Instant timestamp = Instant.now();
+                eventLogs.writeEventLogs
+                        ("Error: Where condition is empty", timestamp, query, DbName, "Update Table");
                 System.out.println("Empty Where condition!");
                 return false;
             }
 
             String col =  temp1[0].trim();
             if(col.length() == 0 || col.isEmpty()){
+                Instant timestamp = Instant.now();
+                eventLogs.writeEventLogs
+                        ("Error: Invalid query entered", timestamp, query, DbName, "Update Table");
                 System.out.println(" IN VALID QUERY!");
                 return false;
             }
@@ -494,6 +586,9 @@ public class DatabaseHandler {
             String[] Columns = col.split(",");
             if(Columns.length == 0) { Columns[0] = col.trim(); }
             if(Columns.length % 2 != 0 && Columns.length != 1){
+                Instant timestamp = Instant.now();
+                eventLogs.writeEventLogs
+                        ("Error: Invalid Where condition", timestamp, query, DbName, "Update Table");
                 System.out.println("Not valid where condition !");
                 return false;
             }
@@ -505,11 +600,14 @@ public class DatabaseHandler {
                     UpdateVal.put(Tcol.get(CurCol[0]) , CurCol[1]);
                 }
                 else{
+                    Instant timestamp = Instant.now();
+                    eventLogs.writeEventLogs
+                            ("Error: Column does not exist", timestamp, query, DbName, "Update Table");
                     System.out.println("Column " + CurCol[0] + " Does not Exist!" );
                     return false;
                 }
             }
-            
+
             if(!query.contains("where")) {
                 return OperationUD(DbName,words[1],"",new HashMap<>(),UpdateVal,0,1);
             }
@@ -523,15 +621,24 @@ public class DatabaseHandler {
 
                 }
                 else{
+                    Instant timestamp = Instant.now();
+                    eventLogs.writeEventLogs
+                            ("Error: Invalid query", timestamp, query, DbName, "Update Table");
                     System.out.println("Query is not valid");
                     return false;
                 }
                 if(whereCol.length != 2){
+                    Instant timestamp = Instant.now();
+                    eventLogs.writeEventLogs
+                            ("Error: Incorrect WHERE condition", timestamp, query, DbName, "Update Table");
                     System.out.println("Problem in the after WHERE condition !");
                     return false;
                 }
                 if(whereCol[1].contains("(")  || whereCol[1].contains(")")){
                     if(!whereCol[1].contains(")") || !whereCol[1].contains("(")){
+                        Instant timestamp = Instant.now();
+                        eventLogs.writeEventLogs
+                                ("Error: Invalid query", timestamp, query, DbName, "Update Table");
                         System.out.println("Not a valid query!");
                         return false;
                     }
@@ -546,6 +653,7 @@ public class DatabaseHandler {
     }
 
     public static boolean CheckDelete(String query,String DbName) throws IOException {
+        query= query.trim().replaceAll(" +"," ");
 
         if(!checkDbExist(DbName)){
             return false;
@@ -557,11 +665,17 @@ public class DatabaseHandler {
                 return false;
             }
             if(!words[0].equals("delete") || !words[1].equals("from")){
+                Instant timestamp = Instant.now();
+                eventLogs.writeEventLogs
+                        ("Error: Problem with the keyword - 'Update' or 'Set' ", timestamp, query, DbName, "Delete Table records");
                 System.out.println("Problem in the keyword update or set");
                 return false;
             }
             if(!CheckTableExist(DbName,words[2].trim())){
-                System.out.println("Table doesnot exist");
+                Instant timestamp = Instant.now();
+                eventLogs.writeEventLogs
+                        ("Error: Table does not exist ", timestamp, query, DbName, "Delete Table");
+                System.out.println("Table does not exist");
                 return false;
             }
 
@@ -573,12 +687,18 @@ public class DatabaseHandler {
             }
             else{
                 if(!query.contains("where")){
+                    Instant timestamp = Instant.now();
+                    eventLogs.writeEventLogs
+                            ("Error: WHERE clause is missing ", timestamp, query, DbName, "Delete Table records");
                     System.out.println("No where clause");
                     return false;
                 }
                 else{
                     String [] Where = query.split("where");
                     if(Where.length == 1){
+                        Instant timestamp = Instant.now();
+                        eventLogs.writeEventLogs
+                                ("Error: Incomplete WHERE clause ", timestamp, query, DbName, "Delete Table records");
                         System.out.println("Incomplete Where Condition !");
                         return false;
                     }
@@ -606,6 +726,9 @@ public class DatabaseHandler {
 
                         }
                         if(ColumnValue.length == 1 || ColumnValue[1].trim().equals("")){
+                            Instant timestamp = Instant.now();
+                            eventLogs.writeEventLogs
+                                    ("Error: Invalid Query After WHERE Clause ", timestamp, query, DbName, "Delete Table records");
                             System.out.println("Invalid Query After Where Clause!");
                             return false;
                         }
@@ -624,11 +747,17 @@ public class DatabaseHandler {
                         String []TempCol = ColumnValue[0].trim().split(" ");
 
                         if (!Tcol.containsKey(TempCol[0].trim())) {
+                            Instant timestamp = Instant.now();
+                            eventLogs.writeEventLogs
+                                    ("Error: Column does not exist ", timestamp, query, DbName, "Delete Table records");
                             System.out.println("Column Doesnot Exist");
                             return false;
                         }
                         if(ColumnValue[1].contains("(") || ColumnValue[1].contains(")")){
                             if(!ColumnValue[1].contains("(") || !ColumnValue[1].contains(")")){
+                                Instant timestamp = Instant.now();
+                                eventLogs.writeEventLogs
+                                        ("Error: Invalid Query ", timestamp, query, DbName, "Delete Table records");
                                 System.out.println("Not a Valid Query!");
                                 return false;
                             }
@@ -643,10 +772,16 @@ public class DatabaseHandler {
                     }
                     else{
                         System.out.println("Query is out of scope !");
+                        Instant timestamp = Instant.now();
+                        eventLogs.writeEventLogs
+                                ("Error: Query is out of scope ", timestamp, query, DbName, "Delete Table records");
                         return false;
                     }
                 }
             }
+        Instant timestamp = Instant.now();
+        eventLogs.writeEventLogs
+                ("Query executed successfully", timestamp, query, DbName, "Delete Table");
             return true;
         }
 
@@ -709,6 +844,9 @@ public class DatabaseHandler {
         String [] queryCols = query.split(",");
         int cnt  = query.length() - query.replace(",","").length();
         if(queryCols.length <= cnt){
+            Instant timestamp = Instant.now();
+            eventLogs.writeEventLogs
+                    ("Error: Missing columns ", timestamp, query, Db, "Select query");
             System.out.println("Columns are missing!");
             return null;
         }
@@ -723,6 +861,9 @@ public class DatabaseHandler {
                 mp1.put(AvaiableCols.get(queryCols[i].trim()),1);
             }
             else{
+                Instant timestamp = Instant.now();
+                eventLogs.writeEventLogs
+                        ("Error: Column does not exist", timestamp, query, Db, "Select query");
                 System.out.println("Column Doesnot Exist in table!");
                 return null;
             }
@@ -744,11 +885,17 @@ public class DatabaseHandler {
                 AfterColumns = query.split("not in");
             }
             if(AfterColumns.length == 1){
+                Instant timestamp = Instant.now();
+                eventLogs.writeEventLogs
+                        ("Error: Invalid query", timestamp, query, DbName, "Select query");
                 System.out.println("Not a Valid query!");
                 return "False";
             }
         }
         else{
+            Instant timestamp = Instant.now();
+            eventLogs.writeEventLogs
+                    ("Error: Invalid query", timestamp, query, DbName, "Select query");
             System.out.println("Not a Valid Query !");
             return "False";
         }
@@ -770,6 +917,9 @@ public class DatabaseHandler {
                 return  ColumnName.trim();
             }
         }
+        Instant timestamp = Instant.now();
+        eventLogs.writeEventLogs
+                ("Error: Column does not exist", timestamp, query, DbName, "Select query");
         System.out.println("Column Does not Exist!");
         return "False";
     }
@@ -777,6 +927,7 @@ public class DatabaseHandler {
     public static HashMap<String,Integer> SendColValues(String query) throws IOException {
 
         HashMap<String, Integer> val = new HashMap<>();
+        String DbName = null;
         if (query.contains("=") || query.contains("in") || query.contains("!=") || query.contains("not in")) {
             String[] Columns = new String[0];
             if (query.contains("=")) {
@@ -788,71 +939,99 @@ public class DatabaseHandler {
             } else if (query.contains("not in")) {
                 Columns = query.split("not in");
             }
-            if(Columns.length == 1 || Columns[1].trim().equals("")){
+            if (Columns.length == 1 || Columns[1].trim().equals("")) {
                 return null;
             }
-            if(Columns[1].contains("(") || Columns[1].contains(")")){
-                if(!Columns[1].contains(")") || !Columns[1].contains("(")){
+            if (Columns[1].contains("(") || Columns[1].contains(")")) {
+                if (!Columns[1].contains(")") || !Columns[1].contains("(")) {
+                    Instant timestamp = Instant.now();
+                    DbName = null;
+                    eventLogs.writeEventLogs
+                            ("Error: Invalid query", timestamp, query, DbName, "Select query");
                     System.out.println("Invalid Query!");
                     return null;
                 }
             }
             Columns[1] = Columns[1].trim();
-            if(Columns[1].contains("(")){
-                Columns[1] = Columns[1].substring(1,Columns[1].length() - 1);
+            if (Columns[1].contains("(")) {
+                Columns[1] = Columns[1].substring(1, Columns[1].length() - 1);
             }
             String[] values = Columns[1].split(",");
             int count = Columns[1].length() - Columns[1].replace(",", "").length();
-            if(values.length <= count){
+            if (values.length <= count) {
                 return null;
             }
-            if(values.length == 0){
+            if (values.length == 0) {
                 return null;
             }
-            for(int i = 0 ; i < values.length; i++){
+            for (int i = 0; i < values.length; i++) {
                 String temp = values[i].trim();
-                if(temp == ""){
-                    return  null;
+                if (temp == "") {
+                    return null;
                 }
-                val.put(values[i].trim(),1);
+                val.put(values[i].trim(), 1);
             }
             return val;
-        }
-        else{
+        } else {
+            Instant timestamp = Instant.now();
+            eventLogs.writeEventLogs
+                    ("Error: Either Query is out of scope or Query is invalid", timestamp, query, DbName, "Select query");
             System.out.println("Either Query is out of scope or Query is invalid!");
             return null;
         }
     }
 
     public static boolean SelectFromTable(String query,String CurdbName) throws IOException {
+        query= query.trim().replaceAll(" +"," ");
+
         if(User1DB == "None"){
             return false;
         }
         query = query.toLowerCase();
         query = query.trim();
         String []words  =query.split(" ");
+        String DbName = null;
         if(!words[0].equals("select") || !query.contains("from") || words.length < 4){
+            Instant timestamp = Instant.now();
+            eventLogs.writeEventLogs
+                    ("Error: Invalid query", timestamp, query, DbName, "Select query");
             System.out.println("Invalid query");
             return false;
         }
          if(words[1].equals("*")) {
              if (!words[2].equals("from")) {
+                 Instant timestamp = Instant.now();
+                 eventLogs.writeEventLogs
+                         ("Error: Invalid query - Expecting FROM after * ", timestamp, query, DbName, "Select query");
                  System.out.println("Query is invalid: Expecting FROM after *");
                  return false;
              } else {
                  if (!CheckTableExist(CurdbName, words[3])) {
+                     Instant timestamp = Instant.now();
+                     eventLogs.writeEventLogs
+                             ("Error: Table does not exist", timestamp, query, DbName, "Select query");
                      System.out.println("Table Doesnot Exist!");
+                     return false;
                  }
                  if (words.length == 4) {
+                     Instant timestamp = Instant.now();
+                     eventLogs.writeEventLogs
+                             ("Query executed successfully", timestamp, query, DbName, "Select query");
                      fetch(CurdbName, words[3], null, "", null, 1,0);
                  }
                  else {
                          if (!words[4].equals("where")) {
+                             Instant timestamp = Instant.now();
+                             eventLogs.writeEventLogs
+                                     ("Error: Invalid query - WHERE clause is expected", timestamp, query, DbName, "Select query");
                              System.out.println("Expecting WHERE CLAUSE!");
                              return false;
                          }
                          String[] AfterWhere = query.split("where");
                          if(AfterWhere.length == 1){
+                             Instant timestamp = Instant.now();
+                             eventLogs.writeEventLogs
+                                     ("Error: No Column after WHERE clause", timestamp, query, DbName, "Select query");
                              System.out.println("No Column After where clause!");
                              return false;
                          }
@@ -863,10 +1042,16 @@ public class DatabaseHandler {
 
                      var ColumnValues = SendColValues(AfterWhere[1]);
                      if(ColumnValues == null){
+                         Instant timestamp = Instant.now();
+                         eventLogs.writeEventLogs
+                                 ("Error: Column values are not mentioned", timestamp, query, DbName, "Select query");
                          System.out.println("Column Values is not mentioend!");
                          return false;
                      }
                      if (columnName.equals("False")) {
+                         Instant timestamp = Instant.now();
+                         eventLogs.writeEventLogs
+                                 ("Error: Column does not exist", timestamp, query, DbName, "Select query");
                              System.out.println("Column Doesnot Exist!");
                              return false;
                          }
@@ -874,6 +1059,9 @@ public class DatabaseHandler {
                      if(query.contains("not in") || query.contains("!=")){
                          Notin = 1;
                      }
+                     Instant timestamp = Instant.now();
+                     eventLogs.writeEventLogs
+                             ("Query executed successfully", timestamp, query, DbName, "Select query");
                      fetch(CurdbName, words[3], null, columnName, ColumnValues, 1,Notin);
                      }
                  }
@@ -886,15 +1074,24 @@ public class DatabaseHandler {
                      return false;
                  }
                  if (words.length == 4) {
+                     Instant timestamp = Instant.now();
+                     eventLogs.writeEventLogs
+                             ("Query executed successfully", timestamp, query, DbName, "Select query");
                      fetch(CurdbName, words[3], selectedColumns, "", null, 0,0);
                     }
                  else {
                      if (!words[4].equals("where")) {
+                         Instant timestamp = Instant.now();
+                         eventLogs.writeEventLogs
+                                 ("Error: Invalid query - WHERE clause is expected", timestamp, query, DbName, "Select query");
                          System.out.println("Expecting WHERE CLAUSE!");
                          return false;
                      }
                      String[] AfterWhere = query.split("where");
                      if(AfterWhere.length == 1){
+                         Instant timestamp = Instant.now();
+                         eventLogs.writeEventLogs
+                                 ("Error: No Column after WHERE clause", timestamp, query, DbName, "Select query");
                          System.out.println("No Column After where clause!");
                          return false;
                      }
@@ -905,10 +1102,16 @@ public class DatabaseHandler {
 
                      var ColumnValues = SendColValues(AfterWhere[1]);
                      if(ColumnValues == null){
+                         Instant timestamp = Instant.now();
+                         eventLogs.writeEventLogs
+                                 ("Error: Column values are not mentioned", timestamp, query, DbName, "Select query");
                          System.out.println("Column Values is not mentioend!");
                          return false;
                      }
                      if (columnName.equals("False")) {
+                         Instant timestamp = Instant.now();
+                         eventLogs.writeEventLogs
+                                 ("Error: Column does not exist", timestamp, query, DbName, "Select query");
                          System.out.println("Column Doesnot Exist!");
                          return false;
                      }
@@ -916,7 +1119,11 @@ public class DatabaseHandler {
                      if(query.contains("not in") || query.contains("!=")){
                          Notin = 1;
                      }
+                     Instant timestamp = Instant.now();
+                     eventLogs.writeEventLogs
+                             ("Query executed successfully", timestamp, query, DbName, "Select query");
                      fetch(CurdbName, words[3], selectedColumns, columnName, ColumnValues, 0,Notin);
+
                  }
          }
          return false;
@@ -954,18 +1161,28 @@ public class DatabaseHandler {
     }
 
     public static boolean CheckInsert(String query , String DbName) throws IOException {
+        query= query.trim().replaceAll(" +"," ");
         query = query.trim();
         query = query.toLowerCase();
         String []words =query.split(" ");
         if(!words[0].trim().equals("insert")){
+            Instant timestamp = Instant.now();
+            eventLogs.writeEventLogs
+                    ("Error: Problem with INSERT keyword", timestamp, query, DbName, "Insert query");
             System.out.println("PROBLEM IN INSERT KEYWORD!");
             return false;
         }
         if(!words[1].trim().equals("into")){
+            Instant timestamp = Instant.now();
+            eventLogs.writeEventLogs
+                    ("Error: Incorect INTO keyword", timestamp, query, DbName, "Insert query");
             System.out.println("Wrong into keyword!");
             return false;
         }
         if(!CheckTableExist(DbName,words[2].trim())){
+            Instant timestamp = Instant.now();
+            eventLogs.writeEventLogs
+                    ("Error: Table does not exist", timestamp, query, DbName, "Insert query");
             System.out.println("Table does not Exist in the corresponding table!");
             return false;
         }
@@ -992,6 +1209,9 @@ public class DatabaseHandler {
                         temp += values.charAt(i++);
                     }
                     if(open == 1){
+                        Instant timestamp = Instant.now();
+                        eventLogs.writeEventLogs
+                                ("Error: Invalid query", timestamp, query, DbName, "Insert query");
                         System.out.println("Not valid Query!");
                         return false;
                     }
@@ -1006,6 +1226,9 @@ public class DatabaseHandler {
                         i++;
                     }
                     if(comma != 1){
+                        Instant timestamp = Instant.now();
+                        eventLogs.writeEventLogs
+                                ("Error: Invalid query - Check the query syntax", timestamp, query, DbName, "Insert query");
                         System.out.println(" Not a valid query: Need a comma between Insertion values!");
                     }
                 }
@@ -1026,6 +1249,9 @@ public class DatabaseHandler {
                 System.out.println("val : " + val);
                 String []colVal = val.split(",");
                 if(colVal.length != TableColumns.length){
+                    Instant timestamp = Instant.now();
+                    eventLogs.writeEventLogs
+                            ("Error: Data input is exceeding the number of actual columns", timestamp, query, DbName, "Insert query");
                     System.out.println("The number of DataInput is more than actual Columns!");
                     return false;
                 }
@@ -1035,12 +1261,18 @@ public class DatabaseHandler {
                     String [] TableTmp = TableColumns[it].split(" ");
                     if(TableTmp.length == 2){
                         if(Unique.containsKey(colVal[it].trim()) && Unique.get(colVal[it]) == it){
+                            Instant timestamp = Instant.now();
+                            eventLogs.writeEventLogs
+                                    ("Error: Duplicate values found", timestamp, query, DbName, "Insert query");
                             System.out.println("Duplicate Value found in the Primary key of the table!");
                             return false;
                         }
                     }
                     if(ColumnDatatype[it].trim().equals("int")){
                         if(!isNumeric(colVal[it])){
+                            Instant timestamp = Instant.now();
+                            eventLogs.writeEventLogs
+                                    ("Error: Datatype did not match", timestamp, query, DbName, "Insert query");
                             System.out.println("Datatype didn't match!");
                             return false;
                         }
@@ -1062,6 +1294,9 @@ public class DatabaseHandler {
                 bw.append(s + "\n");
             }
         bw.close();
+        Instant timestamp = Instant.now();
+        eventLogs.writeEventLogs
+                ("Query executed successfully", timestamp, query, DbName, "Insert query");
         return true;
     }
 

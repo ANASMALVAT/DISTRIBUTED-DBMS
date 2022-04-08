@@ -1,0 +1,35 @@
+{
+Execution Time of the query (in ms): 123,
+Start Time: 2022-04-08T21:57:00.207173800Z,
+End Time: 2022-04-08T21:57:00.326179400Z
+}, 
+{
+Execution Time of the query (in ms): 10,
+Start Time: 2022-04-08T21:57:22.439393500Z,
+End Time: 2022-04-08T21:57:22.449395100Z
+}, 
+{
+Execution Time of the query (in ms): 20,
+Start Time: 2022-04-08T21:57:45.143009800Z,
+End Time: 2022-04-08T21:57:45.163011500Z
+}, 
+{
+Execution Time of the query (in ms): 388,
+Start Time: 2022-04-08T21:58:56.082490300Z,
+End Time: 2022-04-08T21:58:56.470493Z
+}, 
+{
+Execution Time of the query (in ms): 190,
+Start Time: 2022-04-08T22:09:30.961058Z,
+End Time: 2022-04-08T22:09:31.112590800Z
+}, 
+{
+Execution Time of the query (in ms): 47,
+Start Time: 2022-04-08T22:09:48.053692900Z,
+End Time: 2022-04-08T22:09:48.100441700Z
+}, 
+{
+Execution Time of the query (in ms): 69,
+Start Time: 2022-04-08T22:10:22.703464Z,
+End Time: 2022-04-08T22:10:22.772833500Z
+}
