@@ -1,0 +1,6 @@
+{  
+query: "update user set userid = benny where userid != benny",
+timestamp: "20220408_082557",
+user: "tuan",
+db: "null",
+}

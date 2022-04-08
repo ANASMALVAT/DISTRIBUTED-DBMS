@@ -14,9 +14,9 @@ public class DatabaseHandler {
     public static final String seprator = " <xx> ";
     public static  final String ColumnSeprator = " <x> ";
     public static final String space = " ";
-    public static  String User1DB ="null";
+    public static  String User1DB ="db1";
 
-    public static String DbPath = "./DatabaseSystem/Database/";
+    public static String DbPath = "/DatabaseSystem/Database/";
 
     public static boolean CheckSpecial(String chk) {
             Pattern pattern = Pattern.compile("[^a-zA-Z0-9_]");
