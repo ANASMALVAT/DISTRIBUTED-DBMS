@@ -8,14 +8,14 @@ import java.util.*;
 import database.DatabaseHandler;
 import support.GlobalData;
 
-public class Trans{
+public class TransactionDB{
     private final List<String> changedFilesList;
     private List<String> currentQueries;
     private TranactionTable table;
     private String database = "";
 
     //costructor of the class
-    public Trans(){
+    public TransactionDB(){
         this.changedFilesList =  new ArrayList<String>();
         this.currentQueries = new ArrayList<String>();
         this.table = new TranactionTable(GlobalData.userId);
@@ -23,35 +23,35 @@ public class Trans{
     
     //checks start of the queries and returns true if query statements has right keywords
     private boolean syntaxChecker(String query){
-        String[] keywords = query.split("\\s+");
+        query = query.trim();
 
         //check create related queries
-        if(keywords[0].equals("create")){
-            if(keywords[1].equals("table")){
+        if(query.contains("create")){
+            if(query.contains("table")){
                 return true;
             }
-            if(keywords[1].equals("database")){
+            if(query.contains("database")){
                 return true;
             }
         }
 
         //check insert into queries
-        if(keywords[0].equals("insert") && keywords[1].equals("into")){
-            for(String word : keywords){
-                if(word.equals("values")){
+        if(query.contains("insert") && query.contains("into")){
+        
+                if(query.contains("values")){
                     return true;
                 }
-            }
+
             return false;
         }
 
         //check delete related queries
-        if(keywords[0].equals("delete") && keywords[1].equals("from")){
+        if(query.contains("delete") && query.contains("from")){
             return true;
         }
 
         //checl the update 
-        if(keywords[0].equals("update")){
+        if(query.contains("update")){
             return true;
         }
 
@@ -65,7 +65,7 @@ public class Trans{
 
         int numberofLines = lines.size();
         //compares the first line with "start transaction;"
-        if(lines.get(0).toLowerCase().equals("start transaction;") && (lines.get((numberofLines-1)).toLowerCase().equals("commit;") || lines.get((numberofLines-1)).toLowerCase().equals("rollback;"))){
+        if(lines.get(0).toLowerCase().equals("start transaction") && (lines.get((numberofLines-1)).toLowerCase().equals("commit") || lines.get((numberofLines-1)).toLowerCase().equals("rollback"))){
             for(int i = 1; i < (numberofLines-1); i++){
                 String tempQueryString = lines.get(i).toLowerCase();
                 if(syntaxChecker(tempQueryString)){
@@ -89,12 +89,12 @@ public class Trans{
 
     //reads queries from the file
     public boolean processTransaction(List<String> lines){
-        System.out.println(lines);
+        // System.out.println(lines);
+        database = lines.get(0).substring(4,(lines.get(0).length()));
         try {
             String[] useDatabase = lines.get(0).split("\\s+");
-            if(useDatabase[0].toLowerCase().equals("use")){
-                database = useDatabase[1].substring(0,(useDatabase[1].length()-1));
 
+            if(useDatabase[0].toLowerCase().equals("use")){
                 //removes database line from the read block
                 lines = removeLine(lines, 0);
             }
@@ -103,7 +103,7 @@ public class Trans{
                 if(syntaxCheckResponse && !database.equals("")){
                    lines = removeLine(lines, 0);
                    for(String query : lines){
-                       query = query.substring(0, (query.length()-1));
+                       query = query.trim();
                        String[] keywords = query.toLowerCase().split("\\s+");
                        try{
                             if(keywords[0].equals("create")){
