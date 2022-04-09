@@ -81,8 +81,12 @@ public class GUI {
                 Queries queries = new Queries();
                 if(analysis.equals("count queries")) {
                     queries.printCountQuery();
-                } else {
+                } else if (analysis.contains("update")){
                     queries.printCountUpdate();
+                } else if (analysis.contains("insert")) {
+                    queries.printCountInsert();
+                } else if (analysis.contains("delete")) {
+                    queries.printCountDelete();
                 }
             }
             if(line.equals("5")) {

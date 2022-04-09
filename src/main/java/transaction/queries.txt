@@ -1,5 +1,0 @@
-USE DB1;
-START TRANSACTION;
-CREATE DATABASE Prit;
-create table mitul (userid varchar(255), username int primary key);
-ROLLBACK;

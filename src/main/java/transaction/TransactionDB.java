@@ -3,10 +3,14 @@ package transaction;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.time.Instant;
 import java.util.*;
 
+import logmanagement.EventLogs;
+import logmanagement.GeneralLogs;
+import logmanagement.QueryLogs;
+
 import database.DatabaseHandler;
-import support.GlobalData;
 
 public class TransactionDB{
     private final List<String> changedFilesList;
@@ -14,13 +18,17 @@ public class TransactionDB{
     private TranactionTable table;
     private String database = "";
 
+    private GeneralLogs genLogs = new GeneralLogs();
+    private QueryLogs queryLogs = new QueryLogs();
+    private EventLogs EventLogs = new EventLogs();
+
     //costructor of the class
     public TransactionDB(){
         this.changedFilesList =  new ArrayList<String>();
         this.currentQueries = new ArrayList<String>();
-        this.table = new TranactionTable(GlobalData.userId);
+        this.table = new TranactionTable(DatabaseHandler.User1DB);
     }
-    
+
     //checks start of the queries and returns true if query statements has right keywords
     private boolean syntaxChecker(String query){
         query = query.trim();
@@ -37,11 +45,9 @@ public class TransactionDB{
 
         //check insert into queries
         if(query.contains("insert") && query.contains("into")){
-        
-                if(query.contains("values")){
-                    return true;
-                }
-
+            if(query.contains("values")){
+                return true;
+            }
             return false;
         }
 
@@ -50,7 +56,7 @@ public class TransactionDB{
             return true;
         }
 
-        //checl the update 
+        //checl the update
         if(query.contains("update")){
             return true;
         }
@@ -76,83 +82,126 @@ public class TransactionDB{
                     System.out.println(syntaxCheckList);
 
                 }
-                
+
             }
         }
         return syntaxCheckList;
     }
 
     List<String> removeLine(List<String> lines, int index){
-        lines.remove(index); 
+        lines.remove(index);
         return lines;
     }
 
     //reads queries from the file
     public boolean processTransaction(List<String> lines){
-        // System.out.println(lines);
-        database = lines.get(0).substring(4,(lines.get(0).length()));
-        try {
-            String[] useDatabase = lines.get(0).split("\\s+");
 
-            if(useDatabase[0].toLowerCase().equals("use")){
-                //removes database line from the read block
-                lines = removeLine(lines, 0);
-            }
+        // System.out.println(lines);
+        //database = lines.get(0).substring(4,(lines.get(0).length()));
+        database = DatabaseHandler.User1DB;
+        try {
+            // String[] useDatabase = lines.get(0).split("\\s+");
+
+            // if(useDatabase[0].toLowerCase().equals("use")){
+            //     //removes database line from the read block
+            //     lines = removeLine(lines, 0);
+            // }
 
             for(Boolean syntaxCheckResponse: syntaxValidation(lines)){
                 if(syntaxCheckResponse && !database.equals("")){
-                   lines = removeLine(lines, 0);
-                   for(String query : lines){
-                       query = query.trim();
-                       String[] keywords = query.toLowerCase().split("\\s+");
-                       try{
+                    lines = removeLine(lines, 0);
+                    for(String query : lines){
+                        query = query.trim();
+                        String[] keywords = query.toLowerCase().split("\\s+");
+                        try{
                             if(keywords[0].equals("create")){
                                 if(keywords[1].equals("table")){
+                                    long startTime = System.currentTimeMillis();
+                                    Instant timestampBefore = Instant.now();
                                     table.createTable(query, database);
-                                    //LOG - create table sucessfull
+                                    Instant timestampAfter = Instant.now();
+                                    long endTime = System.currentTimeMillis();
+                                    genLogs.writeGeneralLogs(startTime,endTime, timestampBefore, timestampAfter);
+                                    queryLogs.writeQueryLogs(query,DatabaseHandler.User1DB);
                                 }
                                 if(keywords[1].equals("database")){
+                                    long startTime = System.currentTimeMillis();
+                                    Instant timestampBefore = Instant.now();
                                     table.createDatabase(query);
-                                    //LOG - create database sucessfull
-                                }  
+                                    Instant timestampAfter = Instant.now();
+                                    long endTime = System.currentTimeMillis();
+                                    genLogs.writeGeneralLogs(startTime,endTime, timestampBefore, timestampAfter);
+                                    queryLogs.writeQueryLogs(query,DatabaseHandler.User1DB);
+                                }
                             }
 
                             if(keywords[0].equals("update")){
+                                long startTime = System.currentTimeMillis();
+                                Instant timestampBefore = Instant.now();
                                 table.updateTable(query, database);
-                                //LOG - updated value done
+                                Instant timestampAfter = Instant.now();
+                                long endTime = System.currentTimeMillis();
+                                genLogs.writeGeneralLogs(startTime,endTime, timestampBefore, timestampAfter);
+                                queryLogs.writeQueryLogs(query,DatabaseHandler.User1DB);
                             }
 
                             if(keywords[0].equals("insert")){
+                                long startTime = System.currentTimeMillis();
+                                Instant timestampBefore = Instant.now();
                                 table.insertIntoTabel(query, database);
-                                //LOG - insert into done
+                                Instant timestampAfter = Instant.now();
+                                long endTime = System.currentTimeMillis();
+                                genLogs.writeGeneralLogs(startTime,endTime, timestampBefore, timestampAfter);
+                                queryLogs.writeQueryLogs(query,DatabaseHandler.User1DB);
                             }
 
                             if(keywords[0].equals("delete")){
+                                long startTime = System.currentTimeMillis();
+                                Instant timestampBefore = Instant.now();
                                 table.deleteFromTable(query, database);
-                                //LOG - delete from a table is done
+                                Instant timestampAfter = Instant.now();
+                                long endTime = System.currentTimeMillis();
+                                genLogs.writeGeneralLogs(startTime,endTime, timestampBefore, timestampAfter);
+                                queryLogs.writeQueryLogs(query,DatabaseHandler.User1DB);
                             }
 
                             if(keywords[0].equals("commit")){
+                                long startTime = System.currentTimeMillis();
+                                Instant timestampBefore = Instant.now();
                                 table.commit();
-                                //LOG - transaction commited
+                                Instant timestampAfter = Instant.now();
+                                long endTime = System.currentTimeMillis();
+                                genLogs.writeGeneralLogs(startTime,endTime, timestampBefore, timestampAfter);
+                                queryLogs.writeQueryLogs(query,DatabaseHandler.User1DB);
                             }
 
                             if(keywords[0].equals("rollback")){
+                                long startTime = System.currentTimeMillis();
+                                Instant timestampBefore = Instant.now();
                                 table.rollback();
-                                //LOG - transaction rolled back
+                                Instant timestampAfter = Instant.now();
+                                long endTime = System.currentTimeMillis();
+                                genLogs.writeGeneralLogs(startTime,endTime, timestampBefore, timestampAfter);
+                                queryLogs.writeQueryLogs(query,DatabaseHandler.User1DB);
                             }
 
-                       }catch(Exception e){
-                            System.out.println(e);
-                       }    
-                       
+                        }catch(Exception e){
+                            long startTime = System.currentTimeMillis();
+                            Instant timestampBefore = Instant.now();
+                            table.rollback();
+                            Instant timestampAfter = Instant.now();
+                            long endTime = System.currentTimeMillis();
+                            genLogs.writeGeneralLogs(startTime,endTime, timestampBefore, timestampAfter);
+                            queryLogs.writeQueryLogs(query,DatabaseHandler.User1DB);
+                        }
+
+                    }
                 }
+                return true;
             }
-            return true;
-        }
         }catch(Exception e){
             //LOG - for not able to read the file
-                return false;
+            return false;
         }
         return false;
     }

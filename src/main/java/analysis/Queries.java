@@ -88,6 +88,52 @@ public class Queries {
         return map;
     }
 
+    private Map<String, Integer> countInsert() throws IOException {
+        String json = Files.readString(Paths.get(filePath + file));
+        String[] arrayOfJson= json.split("}");
+        Map<String, Integer> map = new HashMap<>();
+
+        for(String singleJson: arrayOfJson) {
+            String[] arrayOfProperties = singleJson.split("\",");
+            String query = arrayOfProperties[0].substring(arrayOfProperties[0].indexOf(":"));
+            String[] queryParts = query.split(" ");
+            String table = queryParts[2];
+            if(query.contains("insert")) {
+                int count;
+                if(map.get(table) == null) {
+                    count = 1;
+                } else {
+                    count = map.get(table) + 1;
+                }
+                map.put(table, count);
+            }
+        }
+        return map;
+    }
+
+    private Map<String, Integer> countDelete() throws IOException {
+        String json = Files.readString(Paths.get(filePath + file));
+        String[] arrayOfJson= json.split("}");
+        Map<String, Integer> map = new HashMap<>();
+
+        for(String singleJson: arrayOfJson) {
+            String[] arrayOfProperties = singleJson.split("\",");
+            String query = arrayOfProperties[0].substring(arrayOfProperties[0].indexOf(":"));
+            String[] queryParts = query.split(" ");
+            String table = queryParts[2];
+            if(query.contains("delete")) {
+                int count;
+                if(map.get(table) == null) {
+                    count = 1;
+                } else {
+                    count = map.get(table) + 1;
+                }
+                map.put(table, count);
+            }
+        }
+        return map;
+    }
+
     public void printCountUpdate() throws IOException {
         Map<String, Integer> map = countUpdate();
         for (Map.Entry<String,Integer> entry : map.entrySet()) {
@@ -95,4 +141,18 @@ public class Queries {
         }
     }
 
+    public void printCountInsert() throws IOException {
+        Map<String, Integer> map = countInsert();
+        for (Map.Entry<String,Integer> entry : map.entrySet()) {
+            System.out.println("Total " + entry.getValue() + " Insert operations are performed on " + entry.getKey());
+        }
+    }
+
+
+    public void printCountDelete() throws IOException {
+        Map<String, Integer> map = countDelete();
+        for (Map.Entry<String,Integer> entry : map.entrySet()) {
+            System.out.println("Total " + entry.getValue() + " Delete operations are performed on " + entry.getKey());
+        }
+    }
 }
