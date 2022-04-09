@@ -110,11 +110,14 @@ public class datadumpCreator {
 
                 // tables insert queries
                 String tablePath = DbPath + "/"  + databaseName + "/" + tableName.trim() + "/data.txt";
-                String insertDataStmt = formInsertTableStatement(tableName.trim(), tablePath);
+                List<String> insertDataStmt = formInsertTableStatement(tableName.trim(), tablePath);
                 if(insertDataStmt != null)
                 {
-                    fileWriter_SQLDumpFile.write(insertDataStmt);
-                    fileWriter_SQLDumpFile.append("\n");
+                    for(String insertStmt : insertDataStmt)
+                    {
+                        fileWriter_SQLDumpFile.write(insertStmt);
+                        fileWriter_SQLDumpFile.append("\n");
+                    }
                 }
             }
 
@@ -132,7 +135,7 @@ public class datadumpCreator {
 
     }
 
-    public static String formInsertTableStatement(String tableName, String path) throws FileNotFoundException {
+    public static List<String> formInsertTableStatement(String tableName, String path) throws FileNotFoundException {
 
         File table_file = new File(path);
         Scanner fileReader_TableData = new Scanner(table_file);
@@ -142,7 +145,7 @@ public class datadumpCreator {
                 List<String> tableData = new ArrayList<>(List.of(fileReader_TableData.nextLine().split(Constants.tableColumnSeparator)));
                 if(tableData.get(tableData.size()-1).equals(" ") || tableData.get(tableData.size()-1).equals(""))
                     tableData.remove(tableData.size()-1);
-
+                System.out.println(tableData);
                 dataList.add(tableData);
         }
 
@@ -153,7 +156,7 @@ public class datadumpCreator {
 
         List<String> createStmt = prepareStatements(tableName, dataList);
 
-        return createStmt.get(0);
+        return createStmt;
     }
 
     private static List<String> prepareStatements(String tableName, List<List<String>> rows) {
@@ -166,7 +169,7 @@ public class datadumpCreator {
                     sb.append(",");
                 }
             }
-            String sql = String.format("INSERT INTO %s  (%s);", tableName, sb.toString());
+            String sql = String.format("INSERT INTO %s VALUES (%s);", tableName, sb.toString());
             result.add(sql);
         });
         return result;

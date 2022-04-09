@@ -5,6 +5,7 @@ import java.util.HashMap;
 public class Locker {
     HashMap<String, String> locks;
 
+    //Locker Constructor
     Locker(){
         this.locks = new HashMap<String, String>();
     }
@@ -15,7 +16,7 @@ public class Locker {
             this.locks.put(tablename, user);
             return true;
         }
-        return false; 
+        return false;
     }
 
     //gets the lock details for a specified user

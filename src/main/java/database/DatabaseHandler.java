@@ -1,10 +1,13 @@
 package database;
 
+import org.apache.commons.io.FileUtils;
 import support.Constants;
 import support.GlobalData;
 
 import java.io.*;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.*;
 
@@ -346,24 +349,29 @@ public class DatabaseHandler {
         }
 
     public static boolean OperationUD(String DbName ,String tableName, String ColumnName, HashMap<String,Integer> oldVal, HashMap<Integer,String> updateVal , int flag, int NotIn) throws IOException {
-
+            System.out.println(ColumnName);
             String curPath = DbPath + DbName + "/" + tableName;
             String metaPath = curPath + "/meta.txt";
             String dataPath = curPath + "/data.txt";
             File fm = new File(metaPath);
             BufferedReader bm = new BufferedReader(new FileReader(fm));
             String line = bm.readLine();
+            bm.close();
             String Col[] = line.split(Pattern.quote(seprator));
             int IsColumnExist = -1;
             for(int i = 0; i < Col.length ; i++){
                 String[] Colchk = Col[i].split(" ");
+
                 if(Colchk.length == 2){
-                    if(Colchk[i].equals(ColumnName)){
-                        IsColumnExist = i;
-                        break;
-                    }
-                    else{
-                        continue;
+                    for(int j =0; j< Colchk.length;j++)
+                    {
+                        if(Colchk[j].equals(ColumnName)){
+                            IsColumnExist = i;
+                            break;
+                        }
+                        else{
+                            continue;
+                        }
                     }
                 }
                 if(Col[i].equals(ColumnName)){
@@ -418,10 +426,14 @@ public class DatabaseHandler {
                     }
                 }
             }
+
             fw.close();
             br.close();
-            fr.delete();
-            ft.renameTo(new File(dataPath));
+            System.gc();
+            if(ft.exists()){
+                FileUtils.delete(fr);
+                ft.renameTo(fr);
+            }
             return true;
         }
 
@@ -645,6 +657,7 @@ public class DatabaseHandler {
             File f = new File(curPath + met);
             BufferedReader bf = new BufferedReader(new FileReader(f));
             String Col = bf.readLine();
+            bf.close();
             String []Columns = Col.split(Pattern.quote(seprator));
             int index = -1;
             for(int i = 0; i < Columns.length;i ++){
@@ -1001,6 +1014,7 @@ public class DatabaseHandler {
             Scanner sc = new Scanner(f);
             String  TCs  = sc.nextLine();
             String  CDt = sc.nextLine();
+            sc.close();
             String[] TableColumns = TCs.split(Pattern.quote(seprator));
             String[] ColumnDatatype = CDt.split(Pattern.quote(seprator));
             ArrayList<String> Insert = new ArrayList<>();
@@ -1038,14 +1052,16 @@ public class DatabaseHandler {
                         InsertTmp += seprator;
                     }
                 }
+
                 System.out.println(InsertTmp);
-                Insert.add(InsertTmp);
+                Insert.add(InsertTmp.trim().substring(0, InsertTmp.trim().length()-4));
             }
-            FileWriter fw = new FileWriter(data,true);
+            BufferedWriter bw = new BufferedWriter(new FileWriter(data,true));
+            //FileWriter fw = new FileWriter(data,true);
             for(String s : Insert){
-                fw.append(s + "\n");
+                bw.append(s + "\n");
             }
-            fw.close();
+        bw.close();
         return true;
     }
 
