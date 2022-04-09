@@ -1,2 +1,0 @@
-userid<**>username primarykey<**>
-varchar(255)<**>int<**>
