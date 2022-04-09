@@ -1,7 +1,11 @@
 package transaction;
 
-import java.io.*; 
-import java.util.*; 
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.*;
 import org.apache.commons.io.FileUtils;
 
 
@@ -9,12 +13,12 @@ import database.DatabaseHandler;
 
 class TranactionTable{
     private String user = "";
-    private final String databasepath = "dmwa-project-team_dpg_17/DatabaseSystem/Database/";
+    private final String databasepath = "./DatabaseSystem/Database/";
     static Locker lock = new Locker();
     Stack<List<String>> stack = new Stack<List<String>>();
 
     TranactionTable(String user){
-       this.user = user;
+        this.user = user;
     }
 
     //commit
@@ -35,42 +39,45 @@ class TranactionTable{
                 operation = tempElement.get(2);
 
                 if(operation.equals("insertInto")){
-                    File originalFile = new File(databasepath+database+"/"+originaltable);
-                    File tempFile = new File(databasepath+database+"/"+originaltable+"temp");
-                    if(tempFile.exists()){
-                        FileUtils.deleteDirectory(originalFile);
-                        tempFile.renameTo(originalFile);
-                    }else{
-                        throw new FileNotFoundException();
-                    }
+                    DoSwap(originaltable, database);
                 }
 
                 if(operation.equals("deleteFrom")){
-                    File originalFile = new File(databasepath+database+"/"+originaltable);
-                    File tempFile = new File(databasepath+database+"/"+originaltable+"temp");
-                    if(tempFile.exists()){
-                        FileUtils.deleteDirectory(new File(databasepath+database+"/"+originaltable));
-                        tempFile.renameTo(originalFile);
-                    }else{
-                        throw new FileNotFoundException();
-                    }
+                    DoSwap(originaltable, database);
                 }
 
                 if(operation.equals("updateTable")){
-                    File originalFile = new File(databasepath+database+"/"+originaltable);
-                    File tempFile = new File(databasepath+database+"/"+originaltable+"temp");
-                    if(tempFile.exists()){
-                        FileUtils.deleteDirectory(new File(databasepath+database+"/"+originaltable));
-                        tempFile.renameTo(originalFile);
-                    }else{
-                        throw new FileNotFoundException();
-                    }
+                    DoSwap(originaltable, database);
                 }
             }
 
             //LOG - TRANSACTION IS ROLLED BACK
         }catch(Exception e){
             System.out.println(e);
+        }
+    }
+
+    private void DoSwap(String originaltable, String database) throws IOException {
+        File originalFile = new File(databasepath+ database +"/"+ originaltable +"/");
+        File tempFile = new File(databasepath+ database +"/"+ originaltable +"temp/");
+        if(tempFile.exists()){
+
+            File[] directoryListing = originalFile.listFiles();
+            for(File file: directoryListing)
+                if (!file.isDirectory())
+                {
+                    System.out.println(file.getName());
+                    file.delete();
+                }
+            FileUtils.copyDirectory(tempFile, originalFile);
+            System.gc();
+
+            Files.delete(Path.of(databasepath + database + "/" + originaltable + "temp/data.txt"));
+            Files.delete(Path.of(databasepath + database + "/" + originaltable + "temp/meta.txt"));
+            Files.delete(Path.of(databasepath + database + "/" + originaltable + "temp/"));
+
+        }else{
+            throw new FileNotFoundException();
         }
     }
 
@@ -86,35 +93,34 @@ class TranactionTable{
         try{
             for(int i=stack.size(); i > 0 ; i--){
                 tempElement = stack.pop();
-    
+
                 originaltable = tempElement.get(0);
                 database = tempElement.get(1);
                 operation = tempElement.get(2);
-    
-                if(operation.equals("creatDatabase")){
-                    FileUtils.deleteDirectory(new File(databasepath+database));
-                }
-
-                if(operation.equals("creatTable")){
-                    FileUtils.deleteDirectory(new File(databasepath+database+"/"+originaltable));
-                }
 
                 if(operation.equals("insertInto")){
-                    FileUtils.deleteDirectory(new File(databasepath+database+"/"+originaltable+"temp"));
+                    TempRollbackDelete(originaltable, database);
                 }
 
                 if(operation.equals("deleteFrom")){
-                    FileUtils.deleteDirectory(new File(databasepath+database+"/"+originaltable+"temp"));
+                    TempRollbackDelete(originaltable, database);
                 }
 
                 if(operation.equals("updateTable")){
-                    FileUtils.deleteDirectory(new File(databasepath+database+"/"+originaltable+"temp"));
+                    TempRollbackDelete(originaltable, database);
                 }
             }
         }catch(Exception e){
-
+            System.out.println(e);
         }
-        
+
+    }
+
+    private void TempRollbackDelete(String originaltable, String database) throws IOException {
+        System.gc();
+        Files.delete(Path.of(databasepath + database + "/" + originaltable + "temp/data.txt"));
+        Files.delete(Path.of(databasepath + database + "/" + originaltable + "temp/meta.txt"));
+        Files.delete(Path.of(databasepath + database + "/" + originaltable + "temp/"));
     }
 
     Boolean createDatabase(String query){
@@ -167,11 +173,11 @@ class TranactionTable{
         }
 
     }
-    
+
     Boolean createDumpTable(String originalTableName, String database){
-        String readingPath = "dmwa-project-team_dpg_17/DatabaseSystem/Database/"+database+"/"+originalTableName;
-        String writingPath = "dmwa-project-team_dpg_17/DatabaseSystem/Database/"+database+"/"+originalTableName+"temp";
-        
+        String readingPath = "./DatabaseSystem/Database/"+database+"/"+originalTableName;
+        String writingPath = "./DatabaseSystem/Database/"+database+"/"+originalTableName+"temp";
+
         int exist = createDirectory(writingPath);
 
         if(exist == 1){
@@ -186,11 +192,11 @@ class TranactionTable{
                 }
             } catch (FileNotFoundException e) {
                 System.out.println(e);
-                
+
             } catch (IOException e) {
                 System.out.println(e);
             }
-    
+
             try (BufferedReader br = new BufferedReader(new FileReader(readingPath+"/meta.txt"))) {
                 try (BufferedWriter bw = new BufferedWriter(new FileWriter(writingPath+"/meta.txt"))) {
                     String text = null;
@@ -207,7 +213,7 @@ class TranactionTable{
                 System.out.println(e);
                 return false;
             }
-            
+
             return true;
         }else if(exist == 0){
             return true;
@@ -227,12 +233,12 @@ class TranactionTable{
                     String tempQuery = String.join(" ", keywords);
                     if(DatabaseHandler.CheckInsert(tempQuery , database)){
                         List<String> tempList  = Arrays.asList(orginalTableName, database, "insertInto");
-                        stack.push(tempList); 
-                    }            
+                        stack.push(tempList);
+                    }
                 }else{
                     return false;
                 }
-                lock.releaseLock(orginalTableName);  
+                lock.releaseLock(orginalTableName);
             }
             return true;
         }catch(Exception e){
@@ -252,12 +258,12 @@ class TranactionTable{
                     String tempQuery = String.join(" ", keywords);
                     if(DatabaseHandler.CheckDelete(tempQuery , database)){
                         List<String> tempList  = Arrays.asList(orginalTableName, database, "deleteFrom");
-                        stack.push(tempList); 
-                    }            
+                        stack.push(tempList);
+                    }
                 }else{
                     return false;
-                }   
-                lock.releaseLock(orginalTableName);  
+                }
+                lock.releaseLock(orginalTableName);
             }
             return true;
         }catch(Exception e){
@@ -271,16 +277,16 @@ class TranactionTable{
             String[] keywords = query.toLowerCase().split("\\s+");
             orginalTableName = keywords[1];
             if(lock.setLock(user, database, orginalTableName)){
-                System.out.println("Locked");
+                //System.out.println("Locked");
                 if(createDumpTable(orginalTableName, database)){
                     keywords[1] = keywords[1]+"temp";
                     String tempQuery = String.join(" ", keywords);
                     if(DatabaseHandler.CheckUpdate(tempQuery , database)){
                         List<String> tempList  = Arrays.asList(orginalTableName, database, "updateTable");
-                        stack.push(tempList); 
-                    }            
-                }  
-                lock.releaseLock(orginalTableName);  
+                        stack.push(tempList);
+                    }
+                }
+                lock.releaseLock(orginalTableName);
             }
             return true;
         }catch(Exception e){
