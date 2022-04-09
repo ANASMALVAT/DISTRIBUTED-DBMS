@@ -168,7 +168,7 @@ public class TransactionDB{
                             if(keywords[0].equals("commit")){
                                 long startTime = System.currentTimeMillis();
                                 Instant timestampBefore = Instant.now();
-                                table.commit();
+                                table.commit(lines.toString());
                                 Instant timestampAfter = Instant.now();
                                 long endTime = System.currentTimeMillis();
                                 genLogs.writeGeneralLogs(startTime,endTime, timestampBefore, timestampAfter);
@@ -178,7 +178,7 @@ public class TransactionDB{
                             if(keywords[0].equals("rollback")){
                                 long startTime = System.currentTimeMillis();
                                 Instant timestampBefore = Instant.now();
-                                table.rollback();
+                                table.rollback(lines.toString());
                                 Instant timestampAfter = Instant.now();
                                 long endTime = System.currentTimeMillis();
                                 genLogs.writeGeneralLogs(startTime,endTime, timestampBefore, timestampAfter);
@@ -188,7 +188,7 @@ public class TransactionDB{
                         }catch(Exception e){
                             long startTime = System.currentTimeMillis();
                             Instant timestampBefore = Instant.now();
-                            table.rollback();
+                            table.rollback(lines.toString());
                             Instant timestampAfter = Instant.now();
                             long endTime = System.currentTimeMillis();
                             genLogs.writeGeneralLogs(startTime,endTime, timestampBefore, timestampAfter);

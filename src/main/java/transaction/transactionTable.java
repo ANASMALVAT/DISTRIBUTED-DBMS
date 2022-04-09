@@ -7,7 +7,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 import org.apache.commons.io.FileUtils;
-
+import logmanagement.EventLogs;
+import java.time.Instant;
+import logmanagement.EventLogs;
 
 import database.DatabaseHandler;
 
@@ -16,6 +18,7 @@ class TranactionTable{
     private final String databasepath = "./DatabaseSystem/Database/";
     static Locker lock = new Locker();
     Stack<List<String>> stack = new Stack<List<String>>();
+    EventLogs events_log = new EventLogs();
 
     TranactionTable(String user){
         this.user = user;
@@ -24,7 +27,7 @@ class TranactionTable{
     //commit
     //database and create Table do not need any changes
     //insert into, delete and update queries - temporary tables needs to be repalced by the permenant one.
-    void commit(){
+    void commit(String query) throws IOException{
         List<String> tempElement;
         String originaltable;
         String database;
@@ -52,8 +55,8 @@ class TranactionTable{
             }
 
             //LOG - TRANSACTION IS ROLLED BACK
-        }catch(Exception e){
-            System.out.println(e);
+        }catch(Exception e) {
+            events_log.writeEventLogs(e.toString(), Instant.now(), query, DatabaseHandler.User1DB, "commit");
         }
     }
 
@@ -66,7 +69,7 @@ class TranactionTable{
             for(File file: directoryListing)
                 if (!file.isDirectory())
                 {
-                    System.out.println(file.getName());
+                    //System.out.println(file.getName());
                     file.delete();
                 }
             FileUtils.copyDirectory(tempFile, originalFile);
@@ -84,7 +87,7 @@ class TranactionTable{
     //rollback
     //database and create Table files gets deleted
     //insert into, delete and update queries - temporary tables needs to be deleted.
-    void rollback(){
+    void rollback(String query) throws IOException {
         List<String> tempElement;
         String originaltable;
         String database;
@@ -111,7 +114,7 @@ class TranactionTable{
                 }
             }
         }catch(Exception e){
-            System.out.println(e);
+            events_log.writeEventLogs(e.toString(), Instant.now(), query, DatabaseHandler.User1DB, "rollback");
         }
 
     }
@@ -123,7 +126,7 @@ class TranactionTable{
         Files.delete(Path.of(databasepath + database + "/" + originaltable + "temp/"));
     }
 
-    Boolean createDatabase(String query){
+    Boolean createDatabase(String query) throws IOException {
         try{
             if(DatabaseHandler.CreateDatabase(query)){
                 String[] keywords = query.toLowerCase().split("\\s+");
@@ -131,14 +134,13 @@ class TranactionTable{
                 stack.push(tempList);
                 return true;
             }
-            return false;
         }catch(Exception e){
-            rollback();
+            events_log.writeEventLogs(e.toString(), Instant.now(), query, DatabaseHandler.User1DB, "create database");
         }
         return false;
     }
 
-    Boolean createTable(String query, String database){
+    Boolean createTable(String query, String database) throws IOException {
         try{
             if(DatabaseHandler.CreateTable(query, database)){
                 String[] keywords = query.toLowerCase().split("\\s+");
@@ -146,10 +148,10 @@ class TranactionTable{
                 stack.push(tempList);
                 return true;
             }
-            return false;
         }catch(Exception e){
-            return false;
+            events_log.writeEventLogs(e.toString(), Instant.now(), query, DatabaseHandler.User1DB, "create table");
         }
+        return false;
     }
 
     Integer createDirectory(String writingPath){
@@ -168,7 +170,6 @@ class TranactionTable{
             }
             return 1;
         }catch(Exception e){
-            System.out.println(e);
             return -1;
         }
 
@@ -185,32 +186,30 @@ class TranactionTable{
                 try (BufferedWriter bw = new BufferedWriter(new FileWriter(writingPath+"/data.txt"))) {
                     String text = null;
                     while ((text = br.readLine()) != null) {
-                        System.out.println(text);
+                        //System.out.println(text);
                         bw.write(text);
                         bw.newLine();
                     }
                 }
             } catch (FileNotFoundException e) {
-                System.out.println(e);
+                return false;
 
             } catch (IOException e) {
-                System.out.println(e);
+                return false;
             }
 
             try (BufferedReader br = new BufferedReader(new FileReader(readingPath+"/meta.txt"))) {
                 try (BufferedWriter bw = new BufferedWriter(new FileWriter(writingPath+"/meta.txt"))) {
                     String text = null;
                     while ((text = br.readLine()) != null) {
-                        System.out.println(text);
+                        //System.out.println(text);
                         bw.write(text);
                         bw.newLine();
                     }
                 }
             } catch (FileNotFoundException e) {
-                System.out.println(e);
                 return false;
             } catch (IOException e) {
-                System.out.println(e);
                 return false;
             }
 
@@ -221,13 +220,13 @@ class TranactionTable{
         return false;
     }
 
-    Boolean insertIntoTabel(String query, String database){
+    Boolean insertIntoTabel(String query, String database) throws IOException {
         String orginalTableName = "";
         try{
             String[] keywords = query.toLowerCase().split("\\s+");
             orginalTableName = keywords[2];
             if(lock.setLock(user, database, orginalTableName)){
-                System.out.println("Locked");
+                //System.out.println("Locked");
                 if(createDumpTable(orginalTableName, database)){
                     keywords[2] = keywords[2]+"temp";
                     String tempQuery = String.join(" ", keywords);
@@ -242,17 +241,18 @@ class TranactionTable{
             }
             return true;
         }catch(Exception e){
+            events_log.writeEventLogs(e.toString(), Instant.now(), query, DatabaseHandler.User1DB, "insert into table");
             return false;
         }
     }
 
-    Boolean deleteFromTable(String query, String database){
+    Boolean deleteFromTable(String query, String database) throws IOException {
         String orginalTableName = "";
         try{
             String[] keywords = query.toLowerCase().split("\\s+");
             orginalTableName = keywords[2];
             if(lock.setLock(user, database, orginalTableName)){
-                System.out.println("Locked");
+                //System.out.println("Locked");
                 if(createDumpTable(orginalTableName, database)){
                     keywords[2] = keywords[2]+"temp";
                     String tempQuery = String.join(" ", keywords);
@@ -267,11 +267,12 @@ class TranactionTable{
             }
             return true;
         }catch(Exception e){
+            events_log.writeEventLogs(e.toString(), Instant.now(), query, DatabaseHandler.User1DB, "delete table");
             return false;
         }
     }
 
-    Boolean updateTable(String query, String database){
+    Boolean updateTable(String query, String database) throws IOException {
         String orginalTableName = "";
         try{
             String[] keywords = query.toLowerCase().split("\\s+");
@@ -290,6 +291,7 @@ class TranactionTable{
             }
             return true;
         }catch(Exception e){
+            events_log.writeEventLogs(e.toString(), Instant.now(), query, DatabaseHandler.User1DB, "update table");
             return false;
         }
     }
