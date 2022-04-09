@@ -1,0 +1,2 @@
+TABLES	 <xx> 	COLUMNS
+demo  <xx>  test varchar(255)  <x> h1 int  <x>  <x> ;
