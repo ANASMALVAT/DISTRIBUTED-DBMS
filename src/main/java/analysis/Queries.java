@@ -10,24 +10,6 @@ import java.util.Map;
 public class Queries {
     private String filePath = "";
     private File file = new File(filePath + "Query_Logs.txt");
-//    private String json = "{\n" +
-//            "  \"query\": \"update user set userid = benny where userid != benny\",\n" +
-//            "  \"timestamp\": \"1648724206\",\n" +
-//            "  \"user\": \"SDEY\",\n" +
-//            "  \"db\": \"DB1\"\n" +
-//            "},\n" +
-//            "{\n" +
-//            "  \"query\": \"update user set userid = benny where userid != benny\",\n" +
-//            "  \"timestamp\": \"1648724206\",\n" +
-//            "  \"user\": \"SDEY\",\n" +
-//            "  \"db\": \"DB1\"\n" +
-//            "},\n" +
-//            "{\n" +
-//            "  \"query\": \"update user set userid = benny where userid != benny\",\n" +
-//            "  \"timestamp\": \"1648724206\",\n" +
-//            "  \"user\": \"Alex\",\n" +
-//            "  \"db\": \"DB1\"\n" +
-//            "}";
 
     private Map<String, QueryDto> countQuery() throws IOException {
         String json = Files.readString(Paths.get(filePath + file));
@@ -97,7 +79,7 @@ public class Queries {
             String[] arrayOfProperties = singleJson.split("\",");
             String query = arrayOfProperties[0].substring(arrayOfProperties[0].indexOf(":"));
             String[] queryParts = query.split(" ");
-            String table = queryParts[2];
+            String table = queryParts[3];
             if(query.contains("insert")) {
                 int count;
                 if(map.get(table) == null) {
@@ -120,7 +102,7 @@ public class Queries {
             String[] arrayOfProperties = singleJson.split("\",");
             String query = arrayOfProperties[0].substring(arrayOfProperties[0].indexOf(":"));
             String[] queryParts = query.split(" ");
-            String table = queryParts[2];
+            String table = queryParts[3];
             if(query.contains("delete")) {
                 int count;
                 if(map.get(table) == null) {

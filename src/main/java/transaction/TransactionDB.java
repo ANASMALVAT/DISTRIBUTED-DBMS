@@ -96,17 +96,8 @@ public class TransactionDB{
     //reads queries from the file
     public boolean processTransaction(List<String> lines){
 
-        // System.out.println(lines);
-        //database = lines.get(0).substring(4,(lines.get(0).length()));
         database = DatabaseHandler.User1DB;
         try {
-            // String[] useDatabase = lines.get(0).split("\\s+");
-
-            // if(useDatabase[0].toLowerCase().equals("use")){
-            //     //removes database line from the read block
-            //     lines = removeLine(lines, 0);
-            // }
-
             for(Boolean syntaxCheckResponse: syntaxValidation(lines)){
                 if(syntaxCheckResponse && !database.equals("")){
                     lines = removeLine(lines, 0);

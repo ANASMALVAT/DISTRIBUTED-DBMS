@@ -28,15 +28,18 @@ public class GeneralLogs {
         DatabaseHandler databaseHandler = new DatabaseHandler();
         String dbName = databaseHandler.User1DB;
         int numberOfTables = 0;
-        if(dbName != null)
+        if(dbName != "null")
         {
             String databasePath = DbPath + dbName + "/";
 
             File dir = new File(databasePath);
             File tables[] = dir.listFiles();
-            for (int i = 0; i < tables.length; i++) {
-                if (tables[i].isDirectory()) {
-                    numberOfTables++;
+            if(tables.length > 0)
+            {
+                for (int i = 0; i < tables.length; i++) {
+                    if (tables[i].isDirectory()) {
+                        numberOfTables++;
+                    }
                 }
             }
         }

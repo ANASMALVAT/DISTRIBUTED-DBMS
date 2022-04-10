@@ -32,99 +32,94 @@ public class datadumpCreator {
         File data_dictionary_file = new File(dataDictionaryPath);
         if(data_dictionary_file.exists() && !data_dictionary_file.isDirectory() && data_dictionary_file.length() > 0) {
             // data dictionary file exists for sql dump creation
-        }
-        else
-        {
-            // raise error and terminate and log
-        }
+            Scanner fileReader_DataDictionary = new Scanner(data_dictionary_file);
+            FileWriter fileWriter_SQLDumpFile = new FileWriter(sql_dump_file);
+            String lineInDataDictionary;
+            boolean firstLine = true;
 
-        Scanner fileReader_DataDictionary = new Scanner(data_dictionary_file);
-        FileWriter fileWriter_SQLDumpFile = new FileWriter(sql_dump_file);
-        String lineInDataDictionary;
-        boolean firstLine = true;
-
-        // Database queries
-        fileWriter_SQLDumpFile.append("CREATE DATABASE "+ databaseName + ";").append("\n");
-        fileWriter_SQLDumpFile.append("USE " + databaseName + ";").append("\n");
+            // Database queries
+            fileWriter_SQLDumpFile.append("CREATE DATABASE "+ databaseName + ";").append("\n");
+            fileWriter_SQLDumpFile.append("USE " + databaseName + ";").append("\n");
 
 
-        // tables create queries
-        while(fileReader_DataDictionary.hasNext())
-        {
-            String columnsString = "";
-            String createStmt = "";
-
-            if(firstLine)
+            // tables create queries
+            while(fileReader_DataDictionary.hasNext())
             {
-                // not needed first line of data dictionary in sql dump
-                fileReader_DataDictionary.nextLine();
-                firstLine = false;
-            }
-            else
-            {
-                lineInDataDictionary = fileReader_DataDictionary.nextLine();
-                lineInDataDictionary = lineInDataDictionary.replace(";", "");
-                List<String> tableEntity = List.of(lineInDataDictionary.split(Constants.tableColumnSeparator));
-                String tableName = tableEntity.get(0);
-                List<String> tableColumns = new ArrayList<>(List.of(tableEntity.get(1).split(Constants.columnColumnSeparator)));
-                if(tableColumns.get(tableColumns.size()-1).equals(" ") || tableColumns.get(tableColumns.size()-1).equals(""))
-                    tableColumns.remove(tableColumns.size()-1);
+                String columnsString = "";
+                String createStmt = "";
 
-                if(lineInDataDictionary.contains(Constants.foreignKey))
+                if(firstLine)
                 {
-                    String foreignKeyText = tableColumns.get(tableColumns.size()-1);
-                    String[] processingArray = foreignKeyText.split(",");
-                    String referencedTableName = processingArray[0].split("[(]")[1];
-                    String referencedColumnName = processingArray[1].split("[)]")[0];
-
-                    for(int i =0; i< tableColumns.size()-1; i++)
-                    {
-                        columnsString += tableColumns.get(i) +',';
-                    }
-
-                    columnsString = columnsString.replace(Constants.primarykey, "PRIMARY KEY");
-
-                    String foreignKeyStmt =  "FOREIGN KEY (" + referencedColumnName + ") REFERENCES "+  referencedTableName + "(" + referencedColumnName + ")";
-                    columnsString += foreignKeyStmt;
-
-                    createStmt = formCreateTableStatement(tableName, columnsString);
-
-                    fileWriter_SQLDumpFile.write(createStmt + ";");
-                    fileWriter_SQLDumpFile.append("\n");
+                    // not needed first line of data dictionary in sql dump
+                    fileReader_DataDictionary.nextLine();
+                    firstLine = false;
                 }
                 else
                 {
-                    for(int i =0; i< tableColumns.size(); i++)
+                    lineInDataDictionary = fileReader_DataDictionary.nextLine();
+                    lineInDataDictionary = lineInDataDictionary.replace(";", "");
+                    List<String> tableEntity = List.of(lineInDataDictionary.split(Constants.tableColumnSeparator));
+                    String tableName = tableEntity.get(0);
+                    List<String> tableColumns = new ArrayList<>(List.of(tableEntity.get(1).split(Constants.columnColumnSeparator)));
+                    if(tableColumns.get(tableColumns.size()-1).equals(" ") || tableColumns.get(tableColumns.size()-1).equals(""))
+                        tableColumns.remove(tableColumns.size()-1);
+
+                    if(lineInDataDictionary.contains(Constants.foreignKey))
                     {
-                        columnsString += tableColumns.get(i);
-                        if(i != tableColumns.size()-1)
-                            columnsString += ",";
-                    }
+                        String foreignKeyText = tableColumns.get(tableColumns.size()-1);
+                        String[] processingArray = foreignKeyText.split(",");
+                        String referencedTableName = processingArray[0].split("[(]")[1];
+                        String referencedColumnName = processingArray[1].split("[)]")[0];
 
-                    columnsString = columnsString.replace(Constants.primarykey, "PRIMARY KEY");
+                        for(int i =0; i< tableColumns.size()-1; i++)
+                        {
+                            columnsString += tableColumns.get(i) +',';
+                        }
 
-                    createStmt = formCreateTableStatement(tableName, columnsString);
-                    fileWriter_SQLDumpFile.write(createStmt + ";");
-                    fileWriter_SQLDumpFile.append("\n");
-                }
+                        columnsString = columnsString.replace(Constants.primarykey, "PRIMARY KEY");
 
-                // tables insert queries
-                String tablePath = DbPath + "/"  + databaseName + "/" + tableName.trim() + "/data.txt";
-                List<String> insertDataStmt = formInsertTableStatement(tableName.trim(), tablePath);
-                if(insertDataStmt != null)
-                {
-                    for(String insertStmt : insertDataStmt)
-                    {
-                        fileWriter_SQLDumpFile.write(insertStmt);
+                        String foreignKeyStmt =  "FOREIGN KEY (" + referencedColumnName + ") REFERENCES "+  referencedTableName + "(" + referencedColumnName + ")";
+                        columnsString += foreignKeyStmt;
+
+                        createStmt = formCreateTableStatement(tableName, columnsString);
+
+                        fileWriter_SQLDumpFile.write(createStmt + ";");
                         fileWriter_SQLDumpFile.append("\n");
                     }
+                    else
+                    {
+                        for(int i =0; i< tableColumns.size(); i++)
+                        {
+                            columnsString += tableColumns.get(i);
+                            if(i != tableColumns.size()-1)
+                                columnsString += ",";
+                        }
+
+                        columnsString = columnsString.replace(Constants.primarykey, "PRIMARY KEY");
+
+                        createStmt = formCreateTableStatement(tableName, columnsString);
+                        fileWriter_SQLDumpFile.write(createStmt + ";");
+                        fileWriter_SQLDumpFile.append("\n");
+                    }
+
+                    // tables insert queries
+                    String tablePath = DbPath + "/"  + databaseName + "/" + tableName.trim() + "/data.txt";
+                    List<String> insertDataStmt = formInsertTableStatement(tableName.trim(), tablePath);
+                    if(insertDataStmt != null)
+                    {
+                        for(String insertStmt : insertDataStmt)
+                        {
+                            fileWriter_SQLDumpFile.write(insertStmt);
+                            fileWriter_SQLDumpFile.append("\n");
+                        }
+                    }
                 }
+
             }
 
+            fileReader_DataDictionary.close();
+            fileWriter_SQLDumpFile.close();
         }
-
-        fileReader_DataDictionary.close();
-        fileWriter_SQLDumpFile.close();
     }
 
     public static String formCreateTableStatement(String tableName, String columns){

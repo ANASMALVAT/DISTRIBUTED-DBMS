@@ -169,9 +169,7 @@ public class GUI {
             genLogs.writeGeneralLogs(startTime,endTime, timestampBefore, timestampAfter);
             queryLogs.writeQueryLogs(query, databaseHandler.User1DB);
         }
-        System.out.println("Query executed");
     }
-
     private void showDatabases(){
         DatabaseHandler databaseHandler = new DatabaseHandler();
         databaseHandler.showDatabase();

@@ -29,41 +29,35 @@ public class erdCreator {
         File data_dictionary_file = new File(dataDictionaryPath);
         if(data_dictionary_file.exists() && !data_dictionary_file.isDirectory() && data_dictionary_file.length() > 0) {
             // data dictionary file exists for erd creation
-        }
-        else
-        {
-            // raise error and terminate and log
-        }
+            Scanner fileReader_DataDictionary = new Scanner(data_dictionary_file);
+            FileWriter fileWriter_ERDDiagram = new FileWriter(erd_diagram_file);
+            String lineInDataDictionary;
+            boolean firstLine = true;
 
-        Scanner fileReader_DataDictionary = new Scanner(data_dictionary_file);
-        FileWriter fileWriter_ERDDiagram = new FileWriter(erd_diagram_file);
-        String lineInDataDictionary;
-        boolean firstLine = true;
-
-        while(fileReader_DataDictionary.hasNext())
-        {
-            if(firstLine)
+            while(fileReader_DataDictionary.hasNext())
             {
-                // not needed first line of data dictionary in erd diagram
-                firstLine = false;
-            }
-            else
-            {
-                lineInDataDictionary = fileReader_DataDictionary.nextLine();
-                if(lineInDataDictionary.contains(Constants.foreignKey))
+                if(firstLine)
                 {
-                    handleTableWithForeignKeyRelation(lineInDataDictionary, fileWriter_ERDDiagram);
+                    // not needed first line of data dictionary in erd diagram
+                    firstLine = false;
                 }
                 else
                 {
-                    handleNormalTable(lineInDataDictionary, fileWriter_ERDDiagram);
+                    lineInDataDictionary = fileReader_DataDictionary.nextLine();
+                    if(lineInDataDictionary.contains(Constants.foreignKey))
+                    {
+                        handleTableWithForeignKeyRelation(lineInDataDictionary, fileWriter_ERDDiagram);
+                    }
+                    else
+                    {
+                        handleNormalTable(lineInDataDictionary, fileWriter_ERDDiagram);
+                    }
                 }
             }
+
+            fileReader_DataDictionary.close();
+            fileWriter_ERDDiagram.close();
         }
-
-        fileReader_DataDictionary.close();
-        fileWriter_ERDDiagram.close();
-
     }
 
     public  static void handleNormalTable(String lineInDataDictionary, FileWriter fileWriter_ERDDiagram) throws IOException {

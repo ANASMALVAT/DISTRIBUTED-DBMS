@@ -66,9 +66,9 @@ public class DatabaseHandler {
                     String[] words = line.split(Pattern.quote(seprator));
                     for (int i = 0; i < words.length; i++) {
                         String []tmp = words[i].split(" ");
-                            if(tmp[0].trim().equals(ColumName)){
-                                return true;
-                            }
+                        if(tmp[0].trim().equals(ColumName) && tmp.length > 1 && tmp[1].trim().equals("primarykey")){
+                            return true;
+                        }
                     }
                 }
             }
@@ -124,13 +124,10 @@ public class DatabaseHandler {
         return true;
     }
 
-
-
     public static boolean CreateTable(String query,String DbName) throws IOException {
         query= query.trim().replaceAll(" +"," ");
-
+        System.out.println(query);
         if(!checkDbExist(DbName)){
-            System.out.println(DbName);
 
             Instant timestamp = Instant.now();
             eventLogs.writeEventLogs
@@ -154,11 +151,10 @@ public class DatabaseHandler {
             }
         };
         if (DbName == "None") {
-
+            System.out.println("You should first select the Database to create a table");
             Instant timestamp = Instant.now();
             eventLogs.writeEventLogs
                     ("Error: Select the Database first to create a table", timestamp, query, DbName, "Create Table");
-            System.out.println("You should first select the Database to create a table");
             return false;
         }
         String path = DbPath + DbName + "/";
@@ -239,11 +235,15 @@ public class DatabaseHandler {
                         if(curCol[j].trim().equals("primary")){
                             if(j + 1 < curCol.length && curCol[j + 1].equals("key")) {
                                 ColInsert += " primarykey";
-                                if(primaryKey.equals("")){
-                                    primaryKey += "PRIMARY_KEY (" + curCol[0] + ") ";
+                                if(!primaryKey.equals("")){
+                                    Instant timestamp = Instant.now();
+                                    eventLogs.writeEventLogs
+                                            ("Sorry! more then 1 primary key are currently out of scope!", timestamp, query, DbName, "Create Table");
+                                    System.out.println("Sorry! more then 1 primary key are currently out of scope!");
+                                    return false;
                                 }
                                 else{
-                                    primaryKey += ColumnSeprator + " " + "PRIMARY_KEY(" + curCol[0] + ") ";
+                                    primaryKey += "PRIMARY_KEY(" + curCol[0] + ") ";
                                 }
                                 j++;
                             }
@@ -264,9 +264,15 @@ public class DatabaseHandler {
                                         System.out.println(curCol[j + 3]);
                                         String []TableColumn = curCol[j + 3].replaceAll("[\\)\\(]", " ").trim().split(" ");
                                         if(!foreingKey.equals("")){
-                                            foreingKey += ColumnSeprator;
+                                            Instant timestamp = Instant.now();
+                                            eventLogs.writeEventLogs
+                                                    ("Sorry! Two foreign keys are currently out of scope!", timestamp, query, DbName, "Create Table");
+
+                                            System.out.println("Sorry! Two foreign keys are currently out of scope!");
+                                            return false;
                                         }
                                         foreingKey += "FOREIGN_KEY (" + TableColumn[0] + " , "+ TableColumn[1] + " )";
+                                        ColInsert += " foreignkey";
 
                                     } else {
                                         Instant timestamp = Instant.now();
@@ -801,7 +807,7 @@ public class DatabaseHandler {
                     index = i;
                 }
             }
-            System.out.println(SelectColumns);
+
             File f1 = new File(curPath + dat);
             BufferedReader bf1 = new BufferedReader(new FileReader(f1));
             String line;
@@ -1179,6 +1185,8 @@ public class DatabaseHandler {
             System.out.println("Wrong into keyword!");
             return false;
         }
+        String TableName = words[2].trim();
+
         if(!CheckTableExist(DbName,words[2].trim())){
             Instant timestamp = Instant.now();
             eventLogs.writeEventLogs
@@ -1288,6 +1296,79 @@ public class DatabaseHandler {
                 System.out.println(InsertTmp);
                 Insert.add(InsertTmp.trim().substring(0, InsertTmp.trim().length()-4));
             }
+
+        File data_dict = new File(DbPath+ DbName + "/data_dictionary.txt");
+        BufferedReader read_dict = new BufferedReader(new FileReader(data_dict));
+        String line = "";
+        String TableCols = "";
+        while((line = read_dict.readLine()) != null){
+            String[] TableNamesCol = line.split(seprator);
+            if(TableNamesCol[0].trim().equals(TableName)){
+                TableCols = TableNamesCol[1];
+            }
+        }
+        String []seeColumns = TableCols.split(ColumnSeprator);
+        for(int it = 0; it  <seeColumns.length ; it ++){
+            String []CheckForeingKey = seeColumns[it].trim().split(" ");
+            if(CheckForeingKey[0].equals("FOREIGN_KEY")){
+
+                String[] SplitNow = seeColumns[it].split("FOREIGN_KEY");
+                String tableAndCol = SplitNow[1];
+                tableAndCol = tableAndCol.replaceAll("[();]","");
+                String []temporaryName = tableAndCol.split(",")  ;
+                String CheckTableName = temporaryName[0].trim();
+                String CheckColumnName = temporaryName[1].trim();
+
+                File ForeignTable = new File(DbPath + DbName + "/" + CheckTableName + "/meta.txt");
+                BufferedReader ForeignBuf = new BufferedReader(new FileReader(ForeignTable));
+
+                String ForeignLine = ForeignBuf.readLine();
+                String []valuesOfForeignLine = ForeignLine.split(seprator);
+                int indexOfPrimary = -1;
+                for(i = 0; i < valuesOfForeignLine.length ; i ++){
+                    String []ChkForeignCurTable = valuesOfForeignLine[i].split(" ");
+                    if(ChkForeignCurTable.length == 2 && ChkForeignCurTable[1].trim().equals("primarykey")){
+                        indexOfPrimary = i;
+                        break;
+                    }
+                }
+
+                ForeignBuf = new BufferedReader(new FileReader(DbPath + DbName + "/" + CheckTableName + "/data.txt"));
+                HashMap<String, Integer> ForeignTableVal = new HashMap<>();
+
+                while ((line = ForeignBuf.readLine()) != null) {
+                    String[] temp = line.split(seprator);
+                    ForeignTableVal.put(temp[indexOfPrimary].trim(), 1);
+                }
+
+
+                File CurTable = new File(DbPath + DbName + "/" + TableName + "/meta.txt");
+                BufferedReader CurTableBuf = new BufferedReader(new FileReader(CurTable));
+                String curTableLine = CurTableBuf.readLine();
+                String []valuesOfCurTable = curTableLine.split(seprator);
+                int indexOfForeing = -1;
+                for(i = 0; i < valuesOfCurTable.length ; i ++) {
+                    String[] ChkForeignCurTable = valuesOfCurTable[i].split(" ");
+                    System.out.println(valuesOfCurTable[i]);
+                    if (ChkForeignCurTable.length == 2 && ChkForeignCurTable[1].trim().equals("foreignkey")) {
+                        indexOfForeing = i;
+                        break;
+                    }
+                }
+                HashMap <String,Integer> CurTableMap  =new HashMap<>();
+                for(String s : Insert){
+                    String []tmp  = s.split(seprator);
+                    CurTableMap.put(tmp[indexOfForeing].trim(), 1);
+                }
+                for(var j : CurTableMap.keySet()){
+                    if(!ForeignTableVal.containsKey(j)){
+                        System.out.println("Violates primary key - foreign key relation!");
+                        return false;
+                    }
+                }
+            }
+        }
+
             BufferedWriter bw = new BufferedWriter(new FileWriter(data,true));
             //FileWriter fw = new FileWriter(data,true);
             for(String s : Insert){
@@ -1299,26 +1380,6 @@ public class DatabaseHandler {
                 ("Query executed successfully", timestamp, query, DbName, "Insert query");
         return true;
     }
-
-//    public void InvalidQuery(){
-//        System.out.println();
-//        System.out.println("The Query is Invalid!");
-//        System.out.println();
-//    }
-//    public static void main(String args[]) throws IOException {
-//
-//
-//                CreateDatabase("create DATABASE test1");
-//                showDatabase();
-    //create table Professor (userid varchar(255) FOREIGN KEY REFERENCES User(userid), professorName varchar(255), professorId int primary key)
-    //create table Student (userid varchar(255) FOREIGN KEY REFERENCES User(userid), studentName varchar(255), studentId int primary key)
-    //create table User1 (userName varchar(255), userid int primary key)
-//                CreateTable("create table Person (userid varchar(255) FOREIGN KEY REFERENCES User(userid), personName varchar(255), personID int primary key)","DB1");
-//                SelectFromTable("select userid,username from user where userid in (danu)","DB1");
-//                CheckUpdate("update user set userid = benny where userid != benny ", "DB1");
-//                CheckDelete("delete from user where userid = benny,asd)","DB1");
-//                CheckInsert("insert into user values (a,1,c),  (d,2,f)","DB1");
-//    }
 
 }
 
