@@ -56,8 +56,8 @@ public class Queries {
             String[] arrayOfProperties = singleJson.split("\",");
             String query = arrayOfProperties[0].substring(arrayOfProperties[0].indexOf(":"));
             String[] queryParts = query.split(" ");
-            String table = queryParts[2];
             if(query.contains("update")) {
+                String table = queryParts[2];
                 int count;
                 if(map.get(table) == null) {
                     count = 1;
@@ -79,8 +79,8 @@ public class Queries {
             String[] arrayOfProperties = singleJson.split("\",");
             String query = arrayOfProperties[0].substring(arrayOfProperties[0].indexOf(":"));
             String[] queryParts = query.split(" ");
-            String table = queryParts[3];
             if(query.contains("insert")) {
+                String table = queryParts[3];
                 int count;
                 if(map.get(table) == null) {
                     count = 1;
@@ -102,8 +102,8 @@ public class Queries {
             String[] arrayOfProperties = singleJson.split("\",");
             String query = arrayOfProperties[0].substring(arrayOfProperties[0].indexOf(":"));
             String[] queryParts = query.split(" ");
-            String table = queryParts[3];
             if(query.contains("delete")) {
+                String table = queryParts[3];
                 int count;
                 if(map.get(table) == null) {
                     count = 1;
