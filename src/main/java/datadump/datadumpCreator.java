@@ -140,7 +140,6 @@ public class datadumpCreator {
                 List<String> tableData = new ArrayList<>(List.of(fileReader_TableData.nextLine().split(Constants.tableColumnSeparator)));
                 if(tableData.get(tableData.size()-1).equals(" ") || tableData.get(tableData.size()-1).equals(""))
                     tableData.remove(tableData.size()-1);
-                System.out.println(tableData);
                 dataList.add(tableData);
         }
 
