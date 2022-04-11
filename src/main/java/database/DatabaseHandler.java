@@ -33,9 +33,6 @@ public class DatabaseHandler {
 
     public static boolean isNumeric(String string) {
         int intValue;
-
-        System.out.println(String.format("Parsing string: \"%s\"", string));
-
         if(string == null || string.equals("")) {
             System.out.println("String cannot be parsed, it is null or empty.");
             return false;
@@ -76,13 +73,13 @@ public class DatabaseHandler {
                 Instant timestamp = Instant.now();
                 eventLogs.writeEventLogs
                         (" Error: The referenced table does not exist", timestamp, "", DbName, "");
-                System.out.println("refrenced table in the foreign key doesnot key");
+                System.out.println("The referenced table does not exist");
                 return false;
             }
         Instant timestamp = Instant.now();
         eventLogs.writeEventLogs
                 (" Error: The referenced column does not exist", timestamp, "", DbName, "");
-            System.out.println("Referenced Column doesnot exist");
+            System.out.println("Referenced Column does not exist");
             return false;
         }
 
@@ -98,7 +95,7 @@ public class DatabaseHandler {
         File f = new File(DbPath + DbName);
         if(!f.isDirectory()){
 
-            System.out.println("DataBase Doesnot Exist!");
+            System.out.println("DataBase Does not Exist!");
             return false;
         }
         return true;
@@ -126,7 +123,7 @@ public class DatabaseHandler {
 
     public static boolean CreateTable(String query,String DbName) throws IOException {
         query= query.trim().replaceAll(" +"," ");
-        System.out.println(query);
+
         if(!checkDbExist(DbName)){
 
             Instant timestamp = Instant.now();
@@ -251,7 +248,7 @@ public class DatabaseHandler {
                                 Instant timestamp = Instant.now();
                                 eventLogs.writeEventLogs
                                         ("Error: Incorrect primary key keyword", timestamp, query, DbName, "Create Table");
-                                System.out.println("problem in primary key keyword");
+                                System.out.println("Problem in primary key keyword");
                                 return false;
                             }
                         }
@@ -260,8 +257,7 @@ public class DatabaseHandler {
                                 if (curCol[j + 1].equals("key") &&
                                         curCol[j + 2].equals("references")) {
                                     if (checkForeign(curCol[j + 3],DbName)) {
-//---------------------------------------------------------------------------------------------------------------------------------------
-                                        System.out.println(curCol[j + 3]);
+
                                         String []TableColumn = curCol[j + 3].replaceAll("[\\)\\(]", " ").trim().split(" ");
                                         if(!foreingKey.equals("")){
                                             Instant timestamp = Instant.now();
@@ -278,7 +274,7 @@ public class DatabaseHandler {
                                         Instant timestamp = Instant.now();
                                         eventLogs.writeEventLogs
                                                 ("Error: Incorrect foreign key", timestamp, query, DbName, "Create Table");
-                                        System.out.println("problem in foreign key");
+                                        System.out.println("Problem in foreign key");
                                         return false;
                                     }
                                 }
@@ -311,7 +307,7 @@ public class DatabaseHandler {
                         Instant timestamp = Instant.now();
                         eventLogs.writeEventLogs
                                 ("Error: Incorrect primary key keyword", timestamp, query, DbName, "Create Table");
-                        System.out.println("Not a key");
+                        System.out.println("Not a valid key");
                         return false;
                     }
                 }
@@ -321,7 +317,7 @@ public class DatabaseHandler {
             DataDictIns += ColumnSeprator;
         }
         path = path + TableName;
-        System.out.println(path);
+
         File TableDir = new File(path);
         if(TableDir.exists()) {
             Instant timestamp = Instant.now();
@@ -338,14 +334,13 @@ public class DatabaseHandler {
         FileWriter fw = new FileWriter(MetaFile);
         MetaFile.createNewFile();
         DataFile.createNewFile();
-        System.out.println(ColInsert);
-        System.out.println(DataInsert);
+
         fw.write(ColInsert+ "\n") ;
         fw.write(DataInsert);
         fw.close();
         String DataDicEntry  = DataDictIns   + primaryKey  + ColumnSeprator + foreingKey + ";";
         createDataDictionary(DataDicEntry, DbName);
-        System.out.println(DataDicEntry);
+
         Instant timestamp = Instant.now();
         eventLogs.writeEventLogs
                 ("Query executed successfully", timestamp, query, DbName, "Create Table");
@@ -423,10 +418,10 @@ public class DatabaseHandler {
                 return true;
             }
             return false;
-        }
+    }
 
     public static boolean OperationUD(String DbName ,String tableName, String ColumnName, HashMap<String,Integer> oldVal, HashMap<Integer,String> updateVal , int flag, int NotIn) throws IOException {
-        System.out.println(ColumnName);
+
         String curPath = DbPath + DbName + "/" + tableName;
         String metaPath = curPath + "/meta.txt";
         String dataPath = curPath + "/data.txt";
@@ -466,7 +461,7 @@ public class DatabaseHandler {
             }
             eventLogs.writeEventLogs
                     ("Error: Column does not exist", timestamp, query, DbName, queryType);
-            System.out.println("Column Doesnot Exist!");
+            System.out.println("Column Does not Exist!");
             return false;
         }
         File fr = new File(dataPath);
@@ -811,6 +806,8 @@ public class DatabaseHandler {
             File f1 = new File(curPath + dat);
             BufferedReader bf1 = new BufferedReader(new FileReader(f1));
             String line;
+            System.out.println();
+            System.out.println("<------------------------------------------------------------------------>");
             while((line = bf1.readLine()) != null) {
                 String[] values = line.split(Pattern.quote(seprator));
                 if((columnName.equals("") || ColVal.containsKey(values[index].trim()))) {
@@ -835,6 +832,8 @@ public class DatabaseHandler {
                     }
                 }
             }
+            System.out.println("<------------------------------------------------------------------------>");
+
             bf1.close();
             return;
         }
@@ -1249,7 +1248,7 @@ public class DatabaseHandler {
             String[] TableColumns = TCs.split(Pattern.quote(seprator));
             String[] ColumnDatatype = CDt.split(Pattern.quote(seprator));
             ArrayList<String> Insert = new ArrayList<>();
-            System.out.println(Unique);
+
             for(String val : queryValues){
 
                 val  = val.replace("(","");
@@ -1293,7 +1292,6 @@ public class DatabaseHandler {
                     }
                 }
 
-                System.out.println(InsertTmp);
                 Insert.add(InsertTmp.trim().substring(0, InsertTmp.trim().length()-4));
             }
 
@@ -1349,7 +1347,7 @@ public class DatabaseHandler {
                 int indexOfForeing = -1;
                 for(i = 0; i < valuesOfCurTable.length ; i ++) {
                     String[] ChkForeignCurTable = valuesOfCurTable[i].split(" ");
-                    System.out.println(valuesOfCurTable[i]);
+
                     if (ChkForeignCurTable.length == 2 && ChkForeignCurTable[1].trim().equals("foreignkey")) {
                         indexOfForeing = i;
                         break;
@@ -1370,7 +1368,6 @@ public class DatabaseHandler {
         }
 
             BufferedWriter bw = new BufferedWriter(new FileWriter(data,true));
-            //FileWriter fw = new FileWriter(data,true);
             for(String s : Insert){
                 bw.append(s + "\n");
             }

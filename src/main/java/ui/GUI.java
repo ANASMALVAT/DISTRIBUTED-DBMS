@@ -153,7 +153,6 @@ public class GUI {
             } else if (query.contains("table")) {
                 long startTime = System.currentTimeMillis();
                 Instant timestampBefore = Instant.now();
-                System.out.println(databaseHandler.User1DB);
                 databaseHandler.CreateTable(query,databaseHandler.User1DB);
                 Instant timestampAfter = Instant.now();
                 long endTime = System.currentTimeMillis();
