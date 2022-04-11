@@ -62,24 +62,40 @@ public class datadumpCreator {
                     String tableName = tableEntity.get(0);
                     List<String> tableColumns = new ArrayList<>(List.of(tableEntity.get(1).split(Constants.columnColumnSeparator)));
                     if(tableColumns.get(tableColumns.size()-1).equals(" ") || tableColumns.get(tableColumns.size()-1).equals(""))
+                    {
                         tableColumns.remove(tableColumns.size()-1);
+                    }
+
 
                     if(lineInDataDictionary.contains(Constants.foreignKey))
                     {
                         String foreignKeyText = tableColumns.get(tableColumns.size()-1);
                         String[] processingArray = foreignKeyText.split(",");
-                        String referencedTableName = processingArray[0].split("[(]")[1];
-                        String referencedColumnName = processingArray[1].split("[)]")[0];
+                        String referencedTableName = processingArray[0].split("[(]")[1].trim();
+                        String referencedColumnName = processingArray[1].split("[)]")[0].trim();
 
-                        for(int i =0; i< tableColumns.size()-1; i++)
+                        String primarykey = tableColumns.get(tableColumns.size()-2).trim();
+                        int startIdx = primarykey.indexOf("(");
+                        int endIdx = primarykey.indexOf(")");
+                        primarykey = primarykey.substring(startIdx+1,endIdx);
+                        String foreignKeyStmt = " FOREIGN KEY REFERENCES "  + referencedTableName + "(" +referencedColumnName + ")";
+                        for(int i =0; i< tableColumns.size()-2; i++)
                         {
-                            columnsString += tableColumns.get(i) +',';
+
+                            columnsString += tableColumns.get(i);
+                            if(tableColumns.get(i).contains(primarykey))
+                            {
+                                columnsString += " primary key";
+                            }
+                            if(tableColumns.get(i).contains(referencedColumnName))
+                            {
+                                columnsString += foreignKeyStmt;
+                            }
+                            if(i != tableColumns.size()-3)
+                            {
+                                columnsString += ",";
+                            }
                         }
-
-                        columnsString = columnsString.replace(Constants.primarykey, "PRIMARY KEY");
-
-                        String foreignKeyStmt =  "FOREIGN KEY (" + referencedColumnName + ") REFERENCES "+  referencedTableName + "(" + referencedColumnName + ")";
-                        columnsString += foreignKeyStmt;
 
                         createStmt = formCreateTableStatement(tableName, columnsString);
 
@@ -88,14 +104,24 @@ public class datadumpCreator {
                     }
                     else
                     {
-                        for(int i =0; i< tableColumns.size(); i++)
+                        String primarykey = tableColumns.get(tableColumns.size()-1).trim();
+                        int startIdx = primarykey.indexOf("(");
+                        int endIdx = primarykey.indexOf(")");
+                        primarykey = primarykey.substring(startIdx+1,endIdx);
+
+                        for(int i =0; i< tableColumns.size()-1; i++)
                         {
                             columnsString += tableColumns.get(i);
-                            if(i != tableColumns.size()-1)
-                                columnsString += ",";
-                        }
 
-                        columnsString = columnsString.replace(Constants.primarykey, "PRIMARY KEY");
+                            if(tableColumns.get(i).contains(primarykey))
+                            {
+                                columnsString += " primary key";
+                            }
+                            if(i != tableColumns.size()-2)
+                            {
+                                columnsString += ",";
+                            }
+                        }
 
                         createStmt = formCreateTableStatement(tableName, columnsString);
                         fileWriter_SQLDumpFile.write(createStmt + ";");
@@ -123,7 +149,7 @@ public class datadumpCreator {
     }
 
     public static String formCreateTableStatement(String tableName, String columns){
-        String statement = String.format("CREATE TABLE IF NOT EXISTS %s " +
+        String statement = String.format("CREATE TABLE %s " +
                 "(" + "%s " + ")", tableName, columns);
 
         return  statement;
