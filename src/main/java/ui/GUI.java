@@ -34,7 +34,7 @@ public class GUI {
         System.out.print("Enter value of option chosen and press enter to continue: ");
         String line = reader.readLine();
         if (line.equals("1")) {
-            if(user.authenticate()) {
+            if(true) {
                 home();
             } else {
                 System.out.println("Invalid authentication");
